@@ -51,13 +51,20 @@ Verified via Portal QR Acknowledgement`;
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <!-- FIX 1: Explicitly tell the browser engine to render this document in light mode -->
+  <meta name="color-scheme" content="light">
   <title>Tax_Computation_${p.name.replace(/\s+/g, '_')}_AY_${p.assessmentYear || '2026-27'}</title>
   <style>
+    /* FIX 2: Hardcode light-scheme at the root layout engine block */
+    html {
+      color-scheme: light !important;
+      background-color: #ffffff !important;
+    }
+    
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      color: #1e293b;
-      background-color: #ffffff;
-      color-scheme: light;
+      color: #1e293b !important;
+      background-color: #ffffff !important;
       margin: 40px auto;
       max-width: 800px;
       padding: 20px;
@@ -104,7 +111,7 @@ Verified via Portal QR Acknowledgement`;
       font-size: 11px;
     }
     .details-box {
-      background-color: #ffffff;
+      background-color: #ffffff !important;
       padding: 14px;
     }
     .details-title {
@@ -143,7 +150,7 @@ Verified via Portal QR Acknowledgement`;
       border: 1px solid #cbd5e1;
       border-radius: 12px;
       text-align: center;
-      background-color: #f8fafc;
+      background-color: #f8fafc !important;
     }
     .summary-label {
       font-size: 8px;
@@ -170,7 +177,7 @@ Verified via Portal QR Acknowledgement`;
       font-size: 11px;
     }
     .comp-header {
-      background-color: #f8fafc;
+      background-color: #f8fafc !important;
       padding: 8px 14px;
       font-weight: 700;
       color: #334155;
@@ -180,6 +187,7 @@ Verified via Portal QR Acknowledgement`;
     }
     .comp-body {
       padding: 12px 14px;
+      background-color: #ffffff !important;
     }
     .comp-row {
       display: flex;
@@ -238,7 +246,7 @@ Verified via Portal QR Acknowledgement`;
       border: 1px solid #cbd5e1;
       padding: 2px;
       border-radius: 6px;
-      background-color: #ffffff;
+      background-color: #ffffff !important;
     }
     .qr-lbl {
       font-size: 7px;
@@ -248,35 +256,12 @@ Verified via Portal QR Acknowledgement`;
       text-transform: uppercase;
     }
     
-    @media print {
-      html, body {
-        background-color: #ffffff !important;
-        background: #ffffff !important;
-        color-scheme: light !important;
-        margin: 0;
-        padding: 0;
-        max-width: 100%;
-      }
-      .print-bar {
-        display: none !important;
-      }
-      .page-break {
-        page-break-before: always !important;
-        break-before: page !important;
-      }
-    }
-
-    .page-break {
-      page-break-before: always;
-      break-before: page;
-    }
-    
     /* Offline Print Bar */
     .print-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background-color: #f1f5f9;
+      background-color: #f1f5f9 !important;
       padding: 12px 20px;
       border-radius: 12px;
       margin-bottom: 24px;
@@ -300,6 +285,50 @@ Verified via Portal QR Acknowledgement`;
     }
     .print-btn:hover {
       background-color: #4338ca;
+    }
+
+    @media print {
+      html, body {
+        background-color: #ffffff !important;
+        background: #ffffff !important;
+        color: #1e293b !important;
+        color-scheme: light !important;
+        margin: 0;
+        padding: 0;
+        max-width: 100%;
+      }
+      .print-bar {
+        display: none !important;
+      }
+      .page-break {
+        page-break-before: always !important;
+        break-before: page !important;
+      }
+    }
+
+    .page-break {
+      page-break-before: always;
+      break-before: page;
+    }
+
+    /* FIX 3: Defeat forced system dark mode extensions/toggles */
+    @media (prefers-color-scheme: dark) {
+      html, body {
+        background-color: #ffffff !important;
+        background: #ffffff !important;
+        color: #1e293b !important;
+      }
+      .details-box, .comp-body, .qr-img {
+        background-color: #ffffff !important;
+      }
+      .summary-card, .comp-header {
+        background-color: #f8fafc !important;
+      }
+      .print-bar {
+        background-color: #f1f5f9 !important;
+      }
+      .lbl { color: #94a3b8 !important; }
+      .val { color: #334155 !important; }
     }
   </style>
 </head>
