@@ -57,6 +57,7 @@ Verified via Portal QR Acknowledgement`;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       color: #1e293b;
       background-color: #ffffff;
+      color-scheme: light;
       margin: 40px auto;
       max-width: 800px;
       padding: 20px;
@@ -251,6 +252,7 @@ Verified via Portal QR Acknowledgement`;
       html, body {
         background-color: #ffffff !important;
         background: #ffffff !important;
+        color-scheme: light !important;
         margin: 0;
         padding: 0;
         max-width: 100%;

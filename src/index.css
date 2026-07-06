@@ -15,39 +15,35 @@ input[type="number"] {
 
 /* Print Layout Rules */
 @media print {
-  html, body, #app-root-layout, #main-content-scroll, main, #computation-pdf-container {
+  :root, html, body {
     background-color: #ffffff !important;
     background: #ffffff !important;
-    color: black !important;
+    color: #000000 !important;
+    color-scheme: light !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
     margin: 0 !important;
     padding: 0 !important;
-    width: 100% !important;
-    height: auto !important;
-    overflow: visible !important;
   }
 
-  /* Reset flex/overflow on parent layouts so they print completely without page clipping */
-  #app-root-layout {
-    display: block !important;
+  /* Reset layout boxes and wrappers for high-fidelity printing */
+  #app-root-layout,
+  #main-content-scroll,
+  main,
+  #computation-pdf-container {
+    background-color: transparent !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
     min-height: 0 !important;
-    height: auto !important;
     overflow: visible !important;
-    background: #ffffff !important;
-    background-color: #ffffff !important;
-  }
-
-  main {
     display: block !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100% !important;
-    height: auto !important;
-    overflow: visible !important;
-    background: #ffffff !important;
-    background-color: #ffffff !important;
   }
 
-  /* Hide everything that is NOT the computation sheets */
+  /* Hide navigation sidebar and other visual control panels */
   header, 
   aside,
   button,
@@ -64,50 +60,44 @@ input[type="number"] {
     margin: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
     position: relative !important;
     left: 0;
     top: 0;
-    background-color: #ffffff !important;
-    background: #ffffff !important;
   }
 
-  /* Force pure white background and clean text colors inside the document during print */
+  /* Force pure white background and high-contrast text on all nested items */
   #printable-computation-document,
   #printable-computation-document * {
     background-color: #ffffff !important;
     background: #ffffff !important;
-    color: #0f172a !important; /* High contrast dark text */
-    border-color: #e2e8f0 !important; /* Clean light border */
+    color: #0f172a !important; /* High contrast slate-900 text */
+    border-color: #cbd5e1 !important; /* Clean light border */
     box-shadow: none !important;
     text-shadow: none !important;
   }
 
-  /* Keep labels and subtle elements legible but styled nicely */
+  /* Retain high-contrast visual hierarchies */
   #printable-computation-document .text-slate-400,
   #printable-computation-document .text-slate-500 {
-    color: #64748b !important;
+    color: #475569 !important; /* High contrast gray labels */
   }
 
   #printable-computation-document .text-indigo-600,
   #printable-computation-document .text-indigo-700 {
-    color: #4f46e5 !important;
+    color: #4f46e5 !important; /* Standard branding blue */
   }
 
   #printable-computation-document .text-emerald-600,
   #printable-computation-document .text-emerald-700 {
-    color: #059669 !important;
+    color: #059669 !important; /* Refund emerald green */
   }
 
-  /* Page break utility */
+  /* Clean print page breaks */
   .print-page-break-before {
     page-break-before: always !important;
     break-before: page !important;
-  }
-
-  /* Force background colors to print correctly */
-  * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
   }
 }
 
