@@ -102,3 +102,92 @@ export interface ITR4Data {
   prepaid: PrepaidTax;
   regime: 'OLD' | 'NEW';
 }
+
+export function createBlankData(): ITR4Data {
+  return {
+    personal: {
+      name: '',
+      pan: '',
+      dob: '',
+      aadhaar: '',
+      mobile: '',
+      email: '',
+      address: '',
+      street: '',
+      area: '',
+      city: '',
+      state: '',
+      pinCode: '',
+      filingSection: '',
+      dueDate: '',
+      assessmentYear: '',
+      financialYear: '',
+      fatherName: '',
+      place: ''
+    },
+    bank: {
+      bankName: '',
+      ifsc: '',
+      accountNumber: ''
+    },
+    salary: {
+      grossSalary: 0,
+      standardDeduction: 0,
+      netSalary: 0
+    },
+    houseProperty: {
+      grossRent: 0,
+      taxesPaid: 0,
+      annualValue: 0,
+      interestOnBorrowing: 0,
+      netHPIncome: 0
+    },
+    business44AD: {
+      turnoverBank: 0,
+      turnoverCash: 0,
+      presumptiveIncomeBank: 0,
+      presumptiveIncomeCash: 0,
+      presumptiveIncomeTotal: 0,
+      cashInHand: 0,
+      totalAssets: 0,
+      sundryDebtors: 0,
+      sundryCreditors: 0,
+      closingStock: 0,
+      openingStock: 0,
+      purchases: 0,
+      freight: 0,
+      capital: 0,
+      otherLiabilities: 0,
+      bankBalance: 0,
+      fixedAssets: 0
+    },
+    profession44ADA: {
+      grossReceipts: 0,
+      presumptiveIncome: 0
+    },
+    otherSources: {
+      interestSavings: 0,
+      interestOthers: 0,
+      dividendIncome: 0,
+      otherIncome: 0,
+      totalOtherSources: 0
+    },
+    deductions: {
+      sec80C: 0,
+      sec80D: 0,
+      sec80G: 0,
+      sec80TTA: 0,
+      totalDeductions: 0
+    },
+    prepaid: {
+      tdsSalary: 0,
+      tdsOthers: 0,
+      tcsPaid: 0,
+      advanceTax: 0,
+      selfAssessmentTax: 0,
+      totalTDS: 0,
+      totalPrepaid: 0
+    },
+    regime: 'NEW'
+  };
+}

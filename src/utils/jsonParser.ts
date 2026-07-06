@@ -1,5 +1,45 @@
-import { ITR4Data, PersonalDetails, BankDetails, SalaryIncome, HousePropertyIncome, PresumptiveBusiness, PresumptiveProfession, OtherSourcesIncome, TaxDeductions, PrepaidTax } from '../types';
-import { SAMPLE_DATA } from './taxCalculator';
+import { ITR4Data, PersonalDetails, BankDetails, SalaryIncome, HousePropertyIncome, PresumptiveBusiness, PresumptiveProfession, OtherSourcesIncome, TaxDeductions, PrepaidTax, createBlankData } from '../types';
+
+export const STATE_CODES_MAP: Record<string, string> = {
+  "01": "ANDAMAN AND NICOBAR ISLANDS",
+  "02": "ANDHRA PRADESH",
+  "03": "ARUNACHAL PRADESH",
+  "04": "ASSAM",
+  "05": "BIHAR",
+  "06": "CHANDIGARH",
+  "07": "DADRA AND NAGAR HAVELI",
+  "08": "DAMAN AND DIU",
+  "09": "DELHI",
+  "10": "GOA",
+  "11": "GUJARAT",
+  "12": "HARYANA",
+  "13": "HIMACHAL PRADESH",
+  "14": "JAMMU AND KASHMIR",
+  "15": "KARNATAKA",
+  "16": "KERALA",
+  "17": "LAKSHADWEEP",
+  "18": "MADHYA PRADESH",
+  "19": "MAHARASHTRA",
+  "20": "MANIPUR",
+  "21": "MEGHALAYA",
+  "22": "MIZORAM",
+  "23": "NAGALAND",
+  "24": "ODISHA",
+  "25": "PUDUCHERRY",
+  "26": "PUNJAB",
+  "27": "RAJASTHAN",
+  "28": "SIKKIM",
+  "29": "TAMIL NADU",
+  "30": "TRIPURA",
+  "31": "UTTAR PRADESH",
+  "32": "WEST BENGAL",
+  "33": "CHHATTISGARH",
+  "34": "UTTARAKHAND",
+  "35": "JHARKHAND",
+  "36": "TELANGANA",
+  "37": "LADAKH",
+  "99": "FOREIGN COUNTRY ADDRESS"
+};
 
 /**
  * Attempts to parse an Indian ITR-4 JSON schema or a simplified JSON schema,
@@ -9,8 +49,8 @@ export function parseITR4JSON(jsonText: string): ITR4Data {
   try {
     const raw = JSON.parse(jsonText);
     
-    // Create copy of default sample data to merge into so that empty fields are pre-populated safely
-    const data: ITR4Data = JSON.parse(JSON.stringify(SAMPLE_DATA));
+    // Create copy of default blank data to merge into so that empty fields are not pre-populated with demo values
+    const data: ITR4Data = createBlankData();
     
     // Check if it's a standard Indian Income Tax Dept JSON schema (usually has ITR or ITR4 keys)
     const itrRoot = raw.ITR || raw;
@@ -18,7 +58,7 @@ export function parseITR4JSON(jsonText: string): ITR4Data {
 
     // Helper functions for parsing AY and FY robustly
     const parseAY = (val: any): string => {
-      if (!val) return '2026-27';
+      if (!val) return '';
       const s = val.toString().trim();
       if (s.includes('-')) return s;
       const yr = parseInt(s, 10);
@@ -29,7 +69,7 @@ export function parseITR4JSON(jsonText: string): ITR4Data {
     };
 
     const parseFY = (val: any): string => {
-      if (!val) return '2025-26';
+      if (!val) return '';
       const s = val.toString().trim();
       if (s.includes('-')) return s;
       const yr = parseInt(s, 10);
@@ -96,22 +136,27 @@ export function parseITR4JSON(jsonText: string): ITR4Data {
     const state = contact.StateCode || '';
     const pin = contact.PinCode || '';
 
+    // Resolve State Code to State Name
+    const stateStr = state.toString().trim();
+    const formattedStateCode = stateStr.padStart(2, '0');
+    const stateName = STATE_CODES_MAP[formattedStateCode] || stateStr;
+
     const streetCombined = [resNo, resName, street].map(s => s.toString().trim()).filter(Boolean).join(', ');
     const addrParts = [
       streetCombined,
       area,
       city,
-      state,
+      stateName,
       pin
     ].map(s => s.toString().trim()).filter(Boolean);
 
     if (addrParts.length > 0) {
       data.personal.address = addrParts.join(', ');
-      data.personal.street = streetCombined || '101, SAMPLE TOWER';
-      data.personal.area = area.toString() || 'DEMO AREA';
-      data.personal.city = city.toString() || 'LUCKNOW';
-      data.personal.state = state.toString() || 'State 09';
-      data.personal.pinCode = pin.toString() || '226001';
+      data.personal.street = streetCombined;
+      data.personal.area = area.toString();
+      data.personal.city = city.toString();
+      data.personal.state = stateName;
+      data.personal.pinCode = pin.toString();
     }
     
     const filing = itr4.FilingStatus || {};
