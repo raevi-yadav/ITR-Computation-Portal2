@@ -1,0 +1,299 @@
+import React, { useRef, useState } from 'react';
+import { motion } from 'motion/react';
+import { 
+  Upload, 
+  FileCheck, 
+  Download, 
+  Printer, 
+  Building, 
+  User, 
+  CreditCard, 
+  Calendar, 
+  TrendingUp, 
+  Wallet, 
+  Coins, 
+  Calculator,
+  Info
+} from 'lucide-react';
+import { ITR4Data } from '../types';
+import { formatIndianCurrency, TaxResult } from '../utils/taxCalculator';
+
+interface DashboardViewProps {
+  data: ITR4Data;
+  taxResult: TaxResult;
+  onUpload: (jsonText: string) => void;
+  onLoadSample: () => void;
+  onDownloadExcel: () => void;
+  onPrintPdf: () => void;
+  setTab: (tab: string) => void;
+}
+
+export default function DashboardView({
+  data,
+  taxResult,
+  onUpload,
+  onLoadSample,
+  onDownloadExcel,
+  onPrintPdf,
+  setTab
+}: DashboardViewProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    readFile(file);
+  };
+
+  const readFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      onUpload(text);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      readFile(file);
+    }
+  };
+
+  return (
+    <div id="dashboard-container" className="space-y-6">
+      {/* Top Banner section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            ITR-4 Computation Portal
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1 max-w-xl">
+            Professional drafting, automated balance sheets, and tax reports from official ITR-4 JSONs.
+          </p>
+        </div>
+
+        {/* Dynamic header buttons matching Vibrant Palette */}
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <button
+            onClick={() => setTab('pl-bs')}
+            className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-orange-600 rounded-2xl hover:bg-orange-500 transition-all cursor-pointer"
+          >
+            <Building className="w-4 h-4" />
+            Open P&L / Balance Sheet
+          </button>
+          <button
+            onClick={onDownloadExcel}
+            className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-teal-600 rounded-2xl hover:bg-teal-500 transition-all cursor-pointer"
+          >
+            <Download className="w-4 h-4" />
+            Download Excel
+          </button>
+          <button
+            onClick={onPrintPdf}
+            className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-blue-600 rounded-2xl hover:bg-blue-500 transition-all cursor-pointer"
+          >
+            <Printer className="w-4 h-4" />
+            Save PDF
+          </button>
+        </div>
+      </div>
+
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept=".json"
+        className="hidden"
+      />
+
+      {/* Main Upload Area (Matches template style) */}
+      <motion.div
+        id="upload-dotted-box"
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        animate={{ borderColor: isDragging ? '#4f46e5' : 'rgb(226, 232, 240)' }}
+        className={`p-6 bg-white dark:bg-slate-900 border-2 border-dashed rounded-[32px] border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all shadow-xs ${
+          isDragging ? 'bg-indigo-50/20 dark:bg-indigo-950/20' : ''
+        }`}
+      >
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <span className="px-2.5 py-0.5 text-xs font-bold bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400 rounded-md uppercase tracking-wide">
+              ITR-4
+            </span>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+              Upload ITR-4 JSON File
+            </h2>
+          </div>
+          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium max-w-2xl leading-relaxed">
+            Drag and drop your official XML/JSON tax filing schema here. TaxEase will automatically calculate head-wise deductions, presumptive sections, and construct standard double-entry ledger sheets.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 shrink-0">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="px-5 py-3 bg-indigo-600 text-white hover:bg-indigo-500 font-bold text-sm rounded-2xl transition-all shadow-md hover:shadow-lg dark:shadow-none cursor-pointer"
+          >
+            Choose JSON
+          </button>
+          <button
+            onClick={onLoadSample}
+            className="px-5 py-3 bg-white dark:bg-slate-900 border-2 border-indigo-600 dark:border-indigo-500/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 font-bold text-sm rounded-2xl transition-all shadow-xs hover:shadow-sm cursor-pointer flex items-center gap-1.5"
+          >
+            <FileCheck className="w-4.5 h-4.5 text-indigo-600 dark:text-indigo-400" />
+            Load Sample
+          </button>
+        </div>
+      </motion.div>
+
+      {/* Grid of Key Metadata cards (Row 1) */}
+      <div id="summary-grid-row-1" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Client Name */}
+        <div className="p-6 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between h-32 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              CLIENT NAME
+            </span>
+            <User className="w-5 h-5 text-indigo-400 dark:text-indigo-500" />
+          </div>
+          <h3 className="text-xl font-black text-indigo-600 dark:text-indigo-400 truncate">
+            {data.personal.name || 'Upload'}
+          </h3>
+        </div>
+
+        {/* PAN */}
+        <div className="p-6 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between h-32 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              PAN CARD
+            </span>
+            <CreditCard className="w-5 h-5 text-slate-400 dark:text-slate-500" />
+          </div>
+          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 tracking-wider">
+            {data.personal.pan || '-'}
+          </h3>
+        </div>
+
+        {/* Assessment Year */}
+        <div className="p-6 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between h-32 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              ASSESSMENT YEAR
+            </span>
+            <Calendar className="w-5 h-5 text-orange-400 dark:text-orange-500" />
+          </div>
+          <h3 className="text-xl font-bold text-orange-600 dark:text-orange-400">
+            {data.personal.assessmentYear || '-'}
+          </h3>
+        </div>
+
+        {/* Refund */}
+        <div className="p-6 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between h-32 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              EXPECTED REFUND
+            </span>
+            <Coins className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />
+          </div>
+          <h3 className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+            {taxResult.refundAmount > 0 ? formatIndianCurrency(taxResult.refundAmount) : '₹0'}
+          </h3>
+        </div>
+      </div>
+
+      {/* Grid of Key financial calculations (Row 2) */}
+      <div id="summary-grid-row-2" className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Gross Total Income */}
+        <div className="p-6 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between h-32 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              GROSS TOTAL INCOME
+            </span>
+            <TrendingUp className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
+          </div>
+          <h3 className="text-2xl font-black text-indigo-700 dark:text-indigo-400">
+            {formatIndianCurrency(taxResult.grossTotalIncome)}
+          </h3>
+        </div>
+
+        {/* Total Income (Rounded) */}
+        <div className="p-6 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between h-32 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              TOTAL TAXABLE INCOME
+            </span>
+            <Wallet className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+          </div>
+          <h3 className="text-2xl font-black text-slate-800 dark:text-slate-200">
+            {formatIndianCurrency(taxResult.totalIncome)}
+          </h3>
+        </div>
+
+        {/* Tax / Interest */}
+        <div className="p-6 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between h-32 hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              NET TAX PAYABLE
+            </span>
+            <Calculator className="w-5 h-5 text-rose-500 dark:text-rose-400" />
+          </div>
+          <h3 className="text-2xl font-black text-rose-600 dark:text-rose-400">
+            {taxResult.payableAmount > 0 ? formatIndianCurrency(taxResult.payableAmount) : '₹0'}
+          </h3>
+        </div>
+      </div>
+
+      {/* Indigo disclaimer info box */}
+      <div className="p-4 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 rounded-2xl flex items-start gap-3">
+        <Info className="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+        <p className="text-xs text-indigo-800 dark:text-indigo-200 leading-normal font-medium">
+          This is an offline-first ITR-4 professional utility. It parses official JSON tax schemas, computes presumptive business heads under Section 44AD/44ADA, and generates formatted double-entry ledger records. All operations occur client-side; no data is transmitted.
+        </p>
+      </div>
+
+      {/* P&L + Balance Sheet Quick Action Box (Matches bottom card in screen 5) */}
+      <div className="p-6 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div className="space-y-1.5">
+          <h3 className="text-base font-bold text-slate-900 dark:text-white">
+            Profit & Loss Account + Balance Sheet
+          </h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium max-w-xl">
+            Auto-generated traditional T-shape dual-entry bookkeeping statement from gross business receipts and presumptive business ratios entered in the tax JSON.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 shrink-0">
+          <button
+            onClick={() => setTab('pl-bs')}
+            className="px-4 py-2.5 bg-orange-600 text-white hover:bg-orange-500 font-bold text-xs rounded-2xl transition-all cursor-pointer"
+          >
+            Open P&L / Balance Sheet
+          </button>
+          <button
+            onClick={onDownloadExcel}
+            className="px-4 py-2.5 bg-teal-600 text-white hover:bg-teal-500 font-bold text-xs rounded-2xl transition-all cursor-pointer flex items-center gap-1.5"
+          >
+            <Download className="w-4 h-4" />
+            Download Excel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

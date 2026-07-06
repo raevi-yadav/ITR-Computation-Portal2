@@ -1,0 +1,6 @@
+{
+  "name": "CA Mitra ITR-4 Computation Utility",
+  "description": "An offline-first, professional computation utility for Indian ITR-4 filings, including P&L, Balance Sheet, Salary, House Property, and Presumptive Business/Profession Income u/s 44AD/44ADA.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
