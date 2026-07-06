@@ -288,14 +288,19 @@ Verified via Portal QR Acknowledgement`;
     }
 
     @media print {
+      @page {
+        margin: 0mm !important; /* Clears browser headers & footers (url, date, page title) */
+      }
       html, body {
         background-color: #ffffff !important;
         background: #ffffff !important;
         color: #1e293b !important;
         color-scheme: light !important;
-        margin: 0;
-        padding: 0;
-        max-width: 100%;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        margin: 0 !important;
+        padding: 1.6cm !important; /* elegant print margins on paper */
+        max-width: 100% !important;
       }
       .print-bar {
         display: none !important;
@@ -317,6 +322,7 @@ Verified via Portal QR Acknowledgement`;
         background-color: #ffffff !important;
         background: #ffffff !important;
         color: #1e293b !important;
+        color-scheme: light !important;
       }
       .details-box, .comp-body, .qr-img {
         background-color: #ffffff !important;

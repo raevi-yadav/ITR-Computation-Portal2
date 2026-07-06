@@ -15,18 +15,33 @@ input[type="number"] {
 
 /* Print Layout Rules */
 @media print {
-  :root, html, body {
+  @page {
+    margin: 0mm !important; /* Clears browser default headers and footers (URL, timestamp, title) */
+  }
+
+  :root, html {
     background-color: #ffffff !important;
     background: #ffffff !important;
     color: #000000 !important;
     color-scheme: light !important;
+  }
+
+  body {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    color-scheme: light !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 1.6cm !important; /* Professional margins on the paper itself */
+    width: auto !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 
   /* Reset layout boxes and wrappers for high-fidelity printing */
+  #root,
   #app-root-layout,
   #main-content-scroll,
   main,
@@ -67,7 +82,7 @@ input[type="number"] {
     top: 0;
   }
 
-  /* Force pure white background and high-contrast text on all nested items */
+  /* Force pure white background and high-contrast text on nested elements by default */
   #printable-computation-document,
   #printable-computation-document * {
     background-color: #ffffff !important;
@@ -76,6 +91,14 @@ input[type="number"] {
     border-color: #cbd5e1 !important; /* Clean light border */
     box-shadow: none !important;
     text-shadow: none !important;
+  }
+
+  /* Preserve subtle accent backgrounds for sections and summary cards */
+  #printable-computation-document .bg-slate-50,
+  #printable-computation-document .bg-slate-50\/50,
+  #printable-computation-document [className*="bg-slate-50"] {
+    background-color: #f8fafc !important;
+    background: #f8fafc !important;
   }
 
   /* Retain high-contrast visual hierarchies */
