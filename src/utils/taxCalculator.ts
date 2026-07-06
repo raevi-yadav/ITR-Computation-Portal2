@@ -111,15 +111,21 @@ export function formatIndianCurrency(amount: number): string {
   const isNegative = amount < 0;
   const absAmount = Math.abs(amount);
   
-  // Format as Indian system: eg: 10,82,927
-  const x = absAmount.toString();
-  let lastThree = x.substring(x.length - 3);
-  const otherNumbers = x.substring(0, x.length - 3);
+  // Separate integer and decimal parts
+  const str = absAmount.toString();
+  const parts = str.split('.');
+  const intPart = parts[0];
+  const decPart = parts.length > 1 ? '.' + parts[1] : '';
+  
+  // Format the integer part as Indian system: eg: 10,82,927
+  let lastThree = intPart.substring(intPart.length - 3);
+  const otherNumbers = intPart.substring(0, intPart.length - 3);
   if (otherNumbers !== '') {
     lastThree = ',' + lastThree;
   }
-  const res = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree;
-  return (isNegative ? '-' : '') + '₹' + res;
+  const formattedInt = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree;
+  
+  return (isNegative ? '-' : '') + '₹' + formattedInt + decPart;
 }
 
 export function roundToNearestTen(amount: number): number {
@@ -189,19 +195,21 @@ export function calculateTax(data: ITR4Data): TaxResult {
 
   if (data.regime === 'NEW') {
     // Slabs for FY 2025-26 (AY 2026-27):
-    // 0 to 3L: Nil
-    // 3L to 7L: 5% (max 20k)
-    // 7L to 10L: 10% (max 30k)
-    // 10L to 12L: 15% (max 30k)
-    // 12L to 15L: 20% (max 60k)
-    // Above 15L: 30%
+    // 0 to 4L: Nil
+    // 4L to 8L: 5% (max 20k)
+    // 8L to 12L: 10% (max 40k)
+    // 12L to 16L: 15% (max 60k)
+    // 16L to 20L: 20% (max 80k)
+    // 20L to 24L: 25% (max 100k)
+    // Above 24L: 30%
     const newSlabs = [
-      { rate: 0, min: 0, max: 300000 },
-      { rate: 5, min: 300000, max: 700000 },
-      { rate: 10, min: 700000, max: 1000000 },
-      { rate: 15, min: 1000000, max: 1200000 },
-      { rate: 20, min: 1200000, max: 1500000 },
-      { rate: 30, min: 1500000, max: Infinity }
+      { rate: 0, min: 0, max: 400000 },
+      { rate: 5, min: 400000, max: 800000 },
+      { rate: 10, min: 800000, max: 1200000 },
+      { rate: 15, min: 1200000, max: 1600000 },
+      { rate: 20, min: 1600000, max: 2000000 },
+      { rate: 25, min: 2000000, max: 2400000 },
+      { rate: 30, min: 2400000, max: Infinity }
     ];
 
     for (const slab of newSlabs) {
@@ -242,15 +250,15 @@ export function calculateTax(data: ITR4Data): TaxResult {
   // 87A Rebate
   let rebate87A = 0;
   if (data.regime === 'NEW') {
-    // Under New Regime, if total income is <= 7,00,000, rebate is 100% of tax (up to 20k)
-    if (totalIncome <= 700000) {
+    // Under New Regime, if total income is <= 12,00,000, rebate is 100% of tax (up to 60k)
+    if (totalIncome <= 1200000) {
       rebate87A = taxBeforeRebate;
-    } else if (totalIncome > 700000 && totalIncome <= 727770) {
+    } else if (totalIncome > 1200000) {
       // Marginal relief u/s 87A in New Regime:
-      // Tax cannot exceed the amount by which income exceeds 7 Lakh.
-      const incomeExceeding7L = totalIncome - 700000;
-      if (taxBeforeRebate > incomeExceeding7L) {
-        rebate87A = taxBeforeRebate - incomeExceeding7L;
+      // Tax cannot exceed the amount by which income exceeds 12 Lakh.
+      const incomeExceeding12L = totalIncome - 1200000;
+      if (taxBeforeRebate > incomeExceeding12L) {
+        rebate87A = taxBeforeRebate - incomeExceeding12L;
       }
     }
   } else {

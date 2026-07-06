@@ -324,27 +324,31 @@ export default function IncomeDetailsView({
               {data.regime === 'NEW' ? (
                 <>
                   <div className="flex justify-between border-b border-slate-800 dark:border-slate-900 pb-2">
-                    <span>Up to ₹3,00,000</span>
+                    <span>Up to ₹4,00,000</span>
                     <span className="font-bold text-indigo-400 dark:text-indigo-300">NIL</span>
                   </div>
                   <div className="flex justify-between border-b border-slate-800 dark:border-slate-900 pb-2">
-                    <span>₹3,00,001 - ₹7,00,000</span>
+                    <span>₹4,00,001 - ₹8,00,000</span>
                     <span className="font-bold text-indigo-400 dark:text-indigo-300">5%</span>
                   </div>
                   <div className="flex justify-between border-b border-slate-800 dark:border-slate-900 pb-2">
-                    <span>₹7,00,001 - ₹10,00,000</span>
+                    <span>₹8,00,001 - ₹12,00,000</span>
                     <span className="font-bold text-indigo-400 dark:text-indigo-300">10%</span>
                   </div>
                   <div className="flex justify-between border-b border-slate-800 dark:border-slate-900 pb-2">
-                    <span>₹10,00,001 - ₹12,00,000</span>
+                    <span>₹12,00,001 - ₹16,00,000</span>
                     <span className="font-bold text-indigo-400 dark:text-indigo-300">15%</span>
                   </div>
                   <div className="flex justify-between border-b border-slate-800 dark:border-slate-900 pb-2">
-                    <span>₹12,00,001 - ₹15,00,000</span>
+                    <span>₹16,00,001 - ₹20,00,000</span>
                     <span className="font-bold text-indigo-400 dark:text-indigo-300">20%</span>
                   </div>
+                  <div className="flex justify-between border-b border-slate-800 dark:border-slate-900 pb-2">
+                    <span>₹20,00,001 - ₹24,00,000</span>
+                    <span className="font-bold text-indigo-400 dark:text-indigo-300">25%</span>
+                  </div>
                   <div className="flex justify-between">
-                    <span>Above ₹15,00,000</span>
+                    <span>Above ₹24,00,000</span>
                     <span className="font-bold text-indigo-400 dark:text-indigo-300">30%</span>
                   </div>
                 </>
@@ -373,7 +377,7 @@ export default function IncomeDetailsView({
             <div className="bg-slate-800/80 dark:bg-slate-900/60 p-4 rounded-2xl text-xs leading-relaxed text-slate-300 border border-slate-800 dark:border-slate-900">
               <span className="font-bold text-amber-400 dark:text-amber-300 block mb-1">Section 87A Rebate:</span>
               {data.regime === 'NEW' 
-                ? 'Under New Regime, full tax rebate is offered if total taxable income is up to ₹7,00,000. Marginal relief is provided for incomes slightly exceeding ₹7 Lakh.'
+                ? 'Under New Regime, full tax rebate is offered if total taxable income is up to ₹12,00,000. Marginal relief is provided for incomes slightly exceeding ₹12 Lakh.'
                 : 'Under Old Regime, full tax rebate is offered if total taxable income is up to ₹5,00,000.'
               }
             </div>

@@ -26,7 +26,7 @@ export default function PersonalBankView({ data, onChange }: PersonalBankViewPro
     { label: 'Aadhaar Number', key: 'aadhaar', type: 'text', placeholder: '999999999999' },
     { label: 'Mobile Number', key: 'mobile', type: 'tel', placeholder: '9876543210' },
     { label: 'Email Address', key: 'email', type: 'email', placeholder: 'demo.client@example.com' },
-    { label: 'Filing Section Code', key: 'filingSection', type: 'text', placeholder: '139(1)' },
+    { label: 'Filed under Section', key: 'filingSection', type: 'text', placeholder: '139(1)' },
     { label: 'Filing Due Date', key: 'dueDate', type: 'date' },
     { label: 'Assessment Year', key: 'assessmentYear', type: 'text', placeholder: '2026-27' },
     { label: 'Financial Year', key: 'financialYear', type: 'text', placeholder: '2025-26' },

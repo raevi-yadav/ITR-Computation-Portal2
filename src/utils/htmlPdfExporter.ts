@@ -28,27 +28,19 @@ export async function exportToHtmlPdf(data: ITR4Data, taxResult: TaxResult) {
       ? `Refund Due: ${formatIndianCurrency(taxResult.refundAmount)}` 
       : `Tax Payable: ${formatIndianCurrency(taxResult.payableAmount)}`;
 
-    const summaryText = `ITR-4 COMPUTATION SUMMARY
+    const summaryText = `ITR-4 COMPUTATION
 -------------------------
 Name: ${p.name.toUpperCase()}
 PAN: ${p.pan.toUpperCase()}
 AY: ${p.assessmentYear} (FY: ${p.financialYear})
 Regime: ${data.regime}
-Gross Total Income: ${formatIndianCurrency(taxResult.grossTotalIncome)}
-Total Taxable Income: ${formatIndianCurrency(taxResult.totalIncome)}
-${refundOrPayable}
-Bank Name: ${b.bankName.toUpperCase()}
-Account No: ${b.accountNumber}
-Filing Section: Section ${p.filingSection || '139(1)'}
-Verified via Portal QR Acknowledgement`;
+Total Income: ${formatIndianCurrency(taxResult.totalIncome)}
+${refundOrPayable}`;
 
     qrCodeUrl = await QRCode.toDataURL(summaryText, {
       margin: 1,
-      width: 120,
-      color: {
-        dark: '#0f172a',
-        light: '#ffffff'
-      }
+      width: 90,
+      color: { dark: '#000000', light: '#ffffff' }
     });
   } catch (err) {
     console.error('Error generating offline QR code:', err);
@@ -58,432 +50,327 @@ Verified via Portal QR Acknowledgement`;
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- FIX 1: Explicitly tell the browser engine to render this document in light mode -->
-  <meta name="color-scheme" content="light">
   <title>${pdfTitle}</title>
   <style>
-    /* FIX 2: Hardcode light-scheme at the root layout engine block */
-    html {
-      color-scheme: light !important;
-      background-color: #ffffff !important;
-    }
-    
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      color: #1e293b !important;
-      background-color: #ffffff !important;
-      margin: 40px auto;
-      max-width: 800px;
-      padding: 20px;
-    }
-    .text-center { text-align: center; }
-    .text-right { text-align: right; }
-    .uppercase { text-transform: uppercase; }
-    .font-bold { font-weight: 700; }
-    .font-black { font-weight: 900; }
-    .tracking-wider { letter-spacing: 0.05em; }
-    .tracking-widest { letter-spacing: 0.1em; }
-    
-    .header-block {
-      text-align: center;
-      border-bottom: 3px solid #4f46e5;
-      padding-bottom: 16px;
-      margin-bottom: 24px;
-    }
-    .header-title {
-      font-size: 22px;
-      font-weight: 900;
-      color: #0f172a;
+    /* Standardized Document Reset */
+    html, body {
+      font-family: "Arial", "Helvetica", sans-serif;
+      font-size: 12px;
+      line-height: 1.4;
+      color: #000000;
+      background-color: #ffffff;
       margin: 0;
-      letter-spacing: 0.05em;
-    }
-    .header-sub {
-      font-size: 11px;
-      color: #64748b;
-      font-weight: 700;
-      margin: 6px 0 0 0;
-      letter-spacing: 0.1em;
-    }
-    
-    /* Details block */
-    .details-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1px;
-      background-color: #e2e8f0;
-      border: 1px solid #cbd5e1;
-      border-radius: 12px;
-      overflow: hidden;
-      margin-bottom: 24px;
-      font-size: 11px;
-    }
-    .details-box {
-      background-color: #ffffff !important;
-      padding: 14px;
-    }
-    .details-title {
-      font-weight: 800;
-      color: #4338ca;
-      font-size: 9px;
-      letter-spacing: 0.05em;
-      border-bottom: 1px solid #f1f5f9;
-      padding-bottom: 4px;
-      margin-bottom: 8px;
-    }
-    .grid-row {
-      display: flex;
-      margin-bottom: 4px;
-    }
-    .lbl {
-      color: #94a3b8;
-      font-weight: 700;
-      width: 32%;
-    }
-    .val {
-      color: #334155;
-      font-weight: 700;
-      width: 68%;
-    }
-    
-    /* Summary blocks */
-    .summary-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-    .summary-card {
-      padding: 12px;
-      border: 1px solid #cbd5e1;
-      border-radius: 12px;
-      text-align: center;
-      background-color: #f8fafc !important;
-    }
-    .summary-label {
-      font-size: 8px;
-      font-weight: 800;
-      color: #64748b;
-      letter-spacing: 0.05em;
-    }
-    .summary-val {
-      font-size: 14px;
-      font-weight: 900;
-      margin-top: 4px;
-    }
-    .summary-val.indigo { color: #4f46e5; }
-    .summary-val.slate { color: #0f172a; }
-    .summary-val.emerald { color: #059669; }
-    .summary-val.rose { color: #dc2626; }
-    
-    /* Tables */
-    .comp-section {
-      margin-bottom: 16px;
-      border: 1px solid #cbd5e1;
-      border-radius: 12px;
-      overflow: hidden;
-      font-size: 11px;
-    }
-    .comp-header {
-      background-color: #f8fafc !important;
-      padding: 8px 14px;
-      font-weight: 700;
-      color: #334155;
-      border-bottom: 1px solid #cbd5e1;
-      font-size: 9px;
-      letter-spacing: 0.05em;
-    }
-    .comp-body {
-      padding: 12px 14px;
-      background-color: #ffffff !important;
-    }
-    .comp-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 4px 0;
-    }
-    .comp-row.sub-row {
-      padding-left: 16px;
-      color: #64748b;
-    }
-    .comp-row.total-row {
-      border-top: 1px solid #f1f5f9;
-      margin-top: 4px;
-      padding-top: 6px;
-      font-weight: 700;
-      color: #0f172a;
-    }
-    .comp-row.final-row {
-      border-top: 2px solid #cbd5e1;
-      margin-top: 6px;
-      padding-top: 6px;
-      font-weight: 900;
-      font-size: 12px;
-    }
-    .text-emerald { color: #059669; }
-    .text-indigo { color: #4f46e5; }
-    .text-rose { color: #dc2626; }
-    
-    /* Footer */
-    .footer {
-      margin-top: 40px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      font-size: 10px;
-      color: #64748b;
-      border-top: 1px dashed #cbd5e1;
-      padding-top: 24px;
-    }
-    .sig-line {
-      width: 180px;
-      border-top: 1px solid #cbd5e1;
-      padding-top: 4px;
-      text-align: center;
-    }
-    .qr-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 4px;
-    }
-    .qr-img {
-      width: 64px;
-      height: 64px;
-      border: 1px solid #cbd5e1;
-      padding: 2px;
-      border-radius: 6px;
-      background-color: #ffffff !important;
-    }
-    .qr-lbl {
-      font-size: 7px;
-      font-weight: 800;
-      color: #94a3b8;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-    
-    /* Offline Print Bar */
-    .print-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background-color: #f1f5f9 !important;
-      padding: 12px 20px;
-      border-radius: 12px;
-      margin-bottom: 24px;
-      border: 1px solid #e2e8f0;
-    }
-    .print-info-text {
-      font-size: 12px;
-      color: #334155;
-      font-weight: 500;
-    }
-    .print-btn {
-      background-color: #4f46e5;
-      color: white;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 11px;
-      font-weight: 700;
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 2px 4px rgba(79, 70, 229, 0.15);
-    }
-    .print-btn:hover {
-      background-color: #4338ca;
+      padding: 0;
     }
 
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    
+    .uppercase { text-transform: uppercase; }
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+    .font-bold { font-weight: bold; }
+    
+    /* Document Header */
+    .header-block {
+      text-align: center;
+      border-bottom: 2px solid #000000;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    .header-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin: 0 0 5px 0;
+      text-decoration: underline;
+    }
+    .header-sub {
+      font-size: 12px;
+      margin: 0;
+    }
+
+    /* Standardized Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      font-size: 12px;
+    }
+    th, td {
+      border: 1px solid #000000;
+      padding: 6px 8px;
+      vertical-align: top;
+    }
+    th {
+      background-color: #f2f2f2 !important; /* Extremely light grey for headers only */
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      text-align: left;
+    }
+    
+    /* Layout utilities */
+    .amt-col {
+      width: 120px;
+      text-align: right;
+    }
+    .total-row td {
+      font-weight: bold;
+      border-top: 2px solid #000000;
+      border-bottom: 2px solid #000000;
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: bold;
+      background-color: #f2f2f2 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      padding: 4px 8px;
+      border: 1px solid #000000;
+      border-bottom: none;
+      margin: 0;
+    }
+
+    /* Print specific settings */
     @media print {
       @page {
-        margin: 0mm !important; /* Clears browser headers & footers (url, date, page title) */
+        size: A4;
+        margin: 15mm; /* This fixes the page 2 spacing issue */
       }
-      html, body {
-        background-color: #ffffff !important;
-        background: #ffffff !important;
-        color: #1e293b !important;
-        color-scheme: light !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-        margin: 0 !important;
-        padding: 1.6cm !important; /* elegant print margins on paper */
-        max-width: 100% !important;
+      .container {
+        margin: 0;
+        padding: 0;
+        max-width: 100%;
       }
       .print-bar {
         display: none !important;
       }
       .page-break {
-        page-break-before: always !important;
-        break-before: page !important;
-        height: 1.5cm !important;
-        display: block !important;
+        page-break-before: always;
+        break-before: page;
+        height: 0;
+        margin: 0;
       }
     }
 
     .page-break {
       page-break-before: always;
       break-before: page;
-      height: 1.5cm;
-      display: block;
     }
 
-    /* FIX 3: Defeat forced system dark mode extensions/toggles */
-    @media (prefers-color-scheme: dark) {
-      html, body {
-        background-color: #ffffff !important;
-        background: #ffffff !important;
-        color: #1e293b !important;
-        color-scheme: light !important;
-      }
-      .details-box, .comp-body, .qr-img {
-        background-color: #ffffff !important;
-      }
-      .summary-card, .comp-header {
-        background-color: #f8fafc !important;
-      }
-      .print-bar {
-        background-color: #f1f5f9 !important;
-      }
-      .lbl { color: #94a3b8 !important; }
-      .val { color: #334155 !important; }
+    /* Print Button UI (Hidden on actual PDF) */
+    .print-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #f1f5f9;
+      padding: 12px 20px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 20px;
+      font-family: sans-serif;
+    }
+    .print-btn {
+      background-color: #000000;
+      color: white;
+      padding: 8px 16px;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <div class="print-bar">
-    <span class="print-info-text">📄 <strong>Ready to print or save!</strong> This offline file opens standard PDF capabilities directly.</span>
-    <button class="print-btn" onclick="window.print()">Save PDF</button>
+    <span>📄 <strong>Computation Ready</strong> | Switch destination to "Save as PDF" in the print dialog.</span>
+    <button class="print-btn" onclick="window.print()">Print / Save PDF</button>
   </div>
 
-  <div class="header-block">
-    <h1 class="header-title">COMPUTATION OF TOTAL INCOME</h1>
-    <p class="header-sub">ITR-4 | ASSESSMENT YEAR ${p.assessmentYear} | FINANCIAL YEAR ${p.financialYear}</p>
-  </div>
-
-  <div class="details-grid">
-    <!-- Assessee details -->
-    <div class="details-box">
-      <div class="details-title">ASSESSEE DETAILS</div>
-      <div class="grid-row"><span class="lbl">Name:</span><span class="val uppercase">${p.name}</span></div>
-      <div class="grid-row"><span class="lbl">PAN:</span><span class="val uppercase">${p.pan}</span></div>
-      <div class="grid-row"><span class="lbl">DOB:</span><span class="val">${p.dob}</span></div>
-      <div class="grid-row"><span class="lbl">Aadhaar:</span><span class="val">${p.aadhaar}</span></div>
-      <div class="grid-row"><span class="lbl">Mobile:</span><span class="val">${p.mobile}</span></div>
+  <div class="container">
+    <div class="header-block">
+      <h1 class="header-title">COMPUTATION OF TOTAL INCOME</h1>
+      <p class="header-sub"><strong>ASSESSMENT YEAR:</strong> ${p.assessmentYear} &nbsp;|&nbsp; <strong>FINANCIAL YEAR:</strong> ${p.financialYear}</p>
     </div>
+
+    <!-- Personal & Filing Details Table -->
+    <table>
+      <tr>
+        <td width="20%"><strong>Name of Assessee:</strong></td>
+        <td width="30%" class="uppercase"><strong>${p.name}</strong></td>
+        <td width="20%"><strong>PAN:</strong></td>
+        <td width="30%" class="uppercase"><strong>${p.pan}</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Father's Name:</strong></td>
+        <td class="uppercase">${p.fatherName || '-'}</td>
+        <td><strong>Date of Birth:</strong></td>
+        <td>${p.dob || '-'}</td>
+      </tr>
+      <tr>
+        <td><strong>Address:</strong></td>
+        <td class="uppercase">${p.address || '-'}</td>
+        <td><strong>Aadhaar No:</strong></td>
+        <td>${p.aadhaar || '-'}</td>
+      </tr>
+      <tr>
+        <td><strong>Tax Regime:</strong></td>
+        <td class="uppercase">${data.regime}</td>
+        <td><strong>Filing Section:</strong></td>
+        <td>139(1) - On or before due date</td>
+      </tr>
+    </table>
+
+    <div class="section-title">STATEMENT OF INCOME</div>
+    <table style="border-top: none;">
+      <tbody>
+        <!-- Salary -->
+        ${isSalaryActive ? `
+        <tr>
+          <td colspan="2"><strong>1. Income from Salary</strong></td>
+        </tr>
+        <tr>
+          <td style="padding-left: 20px;">Gross Salary Received</td>
+          <td class="amt-col">${formatIndianCurrency(data.salary.grossSalary)}</td>
+        </tr>
+        <tr>
+          <td style="padding-left: 20px;">Less: Standard Deduction u/s 16(ia)</td>
+          <td class="amt-col">(${formatIndianCurrency(data.regime === 'NEW' ? 75000 : 50000)})</td>
+        </tr>
+        <tr>
+          <td class="text-right"><strong>Net Income from Salary</strong></td>
+          <td class="amt-col"><strong>${formatIndianCurrency(taxResult.salaryIncome)}</strong></td>
+        </tr>
+        ` : ''}
+
+        <!-- Business & Profession -->
+        <tr>
+          <td colspan="2"><strong>2. Profits and Gains from Business or Profession (Presumptive)</strong></td>
+        </tr>
+        <tr>
+          <td style="padding-left: 20px;">Business Gross Turnover (Sec 44AD)</td>
+          <td class="amt-col">${formatIndianCurrency(bus.turnoverBank + bus.turnoverCash)}</td>
+        </tr>
+        <tr>
+          <td style="padding-left: 40px;">- Declared Profit (Bank / Digital Mode)</td>
+          <td class="amt-col">${formatIndianCurrency(bus.turnoverBank * 0.06)}</td>
+        </tr>
+        <tr>
+          <td style="padding-left: 40px;">- Declared Profit (Cash / Other Mode)</td>
+          <td class="amt-col">${formatIndianCurrency(bus.turnoverCash * 0.08)}</td>
+        </tr>
+        ${isProfessionActive ? `
+        <tr>
+          <td style="padding-left: 20px;">Professional Gross Receipts (Sec 44ADA)</td>
+          <td class="amt-col">${formatIndianCurrency(data.profession44ADA.grossReceipts)}</td>
+        </tr>
+        <tr>
+          <td style="padding-left: 40px;">- Declared Professional Profit (50%)</td>
+          <td class="amt-col">${formatIndianCurrency(data.profession44ADA.presumptiveIncome)}</td>
+        </tr>
+        ` : ''}
+        <tr>
+          <td class="text-right"><strong>Net Business & Profession Income</strong></td>
+          <td class="amt-col"><strong>${formatIndianCurrency(bus.presumptiveIncomeTotal + (isProfessionActive ? data.profession44ADA.presumptiveIncome : 0))}</strong></td>
+        </tr>
+
+        <!-- Other Sources -->
+        <tr>
+          <td colspan="2"><strong>3. Income from Other Sources</strong></td>
+        </tr>
+        <tr>
+          <td style="padding-left: 20px;">Savings Bank Interest</td>
+          <td class="amt-col">${formatIndianCurrency(data.otherSources.interestSavings)}</td>
+        </tr>
+        <tr>
+          <td style="padding-left: 20px;">Dividend / Other Interest</td>
+          <td class="amt-col">${formatIndianCurrency(data.otherSources.dividendIncome + data.otherSources.interestOthers)}</td>
+        </tr>
+        <tr>
+          <td class="text-right"><strong>Net Income from Other Sources</strong></td>
+          <td class="amt-col"><strong>${formatIndianCurrency(taxResult.otherSourcesIncome)}</strong></td>
+        </tr>
+        
+        <tr class="total-row">
+          <td class="text-right">GROSS TOTAL INCOME</td>
+          <td class="amt-col">${formatIndianCurrency(taxResult.grossTotalIncome)}</td>
+        </tr>
+        
+        <tr class="total-row">
+          <td class="text-right">TOTAL TAXABLE INCOME (Rounded off u/s 288A)</td>
+          <td class="amt-col">${formatIndianCurrency(taxResult.totalIncome)}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="page-break"></div>
+
+    <div class="section-title">TAX COMPUTATION</div>
+    <table style="border-top: none;">
+      <tbody>
+        <tr>
+          <td>Tax on Total Income</td>
+          <td class="amt-col">${formatIndianCurrency(taxResult.taxBeforeRebate)}</td>
+        </tr>
+        <tr>
+          <td>Less: Rebate u/s 87A</td>
+          <td class="amt-col">${taxResult.rebate87A > 0 ? `(${formatIndianCurrency(taxResult.rebate87A)})` : '0'}</td>
+        </tr>
+        <tr>
+          <td>Add: Health & Education Cess @ 4%</td>
+          <td class="amt-col">${formatIndianCurrency(taxResult.cess)}</td>
+        </tr>
+        <tr class="total-row">
+          <td class="text-right">Gross Tax Liability</td>
+          <td class="amt-col">${formatIndianCurrency(taxResult.totalTaxLiability)}</td>
+        </tr>
+        <tr>
+          <td>Less: TDS / TCS / Advance Tax Paid</td>
+          <td class="amt-col">(${formatIndianCurrency(taxResult.prepaidTax)})</td>
+        </tr>
+        <tr class="total-row">
+          <td class="text-right">NET TAX ${isPayable ? 'PAYABLE' : 'REFUNDABLE'} (Rounded off u/s 288B)</td>
+          <td class="amt-col">${refundOrPayableText}</td>
+        </tr>
+      </tbody>
+    </table>
     
-    <!-- Address & Filing -->
-    <div class="details-box">
-      <div class="details-title">ADDRESS & FILING</div>
-      <div class="grid-row"><span class="lbl">Address:</span><span class="val uppercase">${p.address}</span></div>
-      <div class="grid-row"><span class="lbl">Email:</span><span class="val">${p.email}</span></div>
-      <div class="grid-row"><span class="lbl">Filed u/s:</span><span class="val">Section ${p.filingSection || '11'}</span></div>
-      <div class="grid-row"><span class="lbl">Due Date:</span><span class="val">${p.dueDate}</span></div>
-    </div>
+    <div class="section-title">BANK ACCOUNT DETAILS (FOR REFUND)</div>
+    <table style="border-top: none;">
+      <tr>
+        <td width="20%"><strong>Bank Name:</strong></td>
+        <td width="30%" class="uppercase">${b.bankName}</td>
+        <td width="20%"><strong>Account Number:</strong></td>
+        <td width="30%">${b.accountNumber}</td>
+      </tr>
+      <tr>
+        <td><strong>IFSC Code:</strong></td>
+        <td class="uppercase">${b.ifsc}</td>
+        <td><strong>Account Type:</strong></td>
+        <td>Savings</td>
+      </tr>
+    </table>
 
-    <!-- Bank details -->
-    <div class="details-box">
-      <div class="details-title">BANK FOR REFUND</div>
-      <div class="grid-row"><span class="lbl">Bank Name:</span><span class="val uppercase">${b.bankName}</span></div>
-      <div class="grid-row"><span class="lbl">IFSC:</span><span class="val uppercase">${b.ifsc}</span></div>
-      <div class="grid-row"><span class="lbl">A/c No:</span><span class="val">${b.accountNumber}</span></div>
-    </div>
-
-    <!-- Verification -->
-    <div class="details-box">
-      <div class="details-title">VERIFICATION</div>
-      <div class="grid-row"><span class="lbl">Verified By:</span><span class="val uppercase">${p.name}</span></div>
-      <div class="grid-row"><span class="lbl">Father Name:</span><span class="val uppercase">${p.fatherName}</span></div>
-      <div class="grid-row"><span class="lbl">Place:</span><span class="val uppercase">${p.place}</span></div>
-    </div>
+    <table style="margin-top: 40px; border: none;">
+      <tr style="border: none;">
+        <td style="border: none; vertical-align: bottom;">
+          <p><strong>Place:</strong> <span class="uppercase">${p.place || '-'}</span></p>
+          <p><strong>Date:</strong> ${p.dueDate ? p.dueDate.split('-').reverse().join('-') : '31-08-2026'}</p>
+        </td>
+        ${qrCodeUrl ? `
+        <td style="border: none; text-align: center; width: 150px;">
+          <img src="${qrCodeUrl}" alt="QR" style="border: 1px solid #000; padding: 4px;" />
+        </td>
+        ` : ''}
+        <td style="border: none; text-align: center; vertical-align: bottom; width: 250px;">
+          <div style="border-bottom: 1px solid #000; width: 100%; margin-bottom: 5px; height: 40px;"></div>
+          <strong>( ${p.name.toUpperCase()} )</strong><br/>
+          Signature of Assessee
+        </td>
+      </tr>
+    </table>
   </div>
-
-  <div class="summary-grid">
-    <div class="summary-card">
-      <span class="summary-label">GROSS TOTAL INCOME</span>
-      <div class="summary-val indigo">${formatIndianCurrency(taxResult.grossTotalIncome)}</div>
-    </div>
-    <div class="summary-card">
-      <span class="summary-label">TOTAL INCOME</span>
-      <div class="summary-val slate">${formatIndianCurrency(taxResult.totalIncome)}</div>
-    </div>
-    <div class="summary-card">
-      <span class="summary-label">TAX PAYABLE(+)/REFUNDABLE(-)</span>
-      <div class="summary-val ${isPayable ? 'rose' : isRefund ? 'emerald' : 'slate'}">${refundOrPayableText}</div>
-    </div>
-  </div>
-
-  <!-- Detailed Sections -->
-  <div class="page-break"></div>
-  ${isSalaryActive ? `
-  <div class="comp-section">
-    <div class="comp-header">SALARY INCOME COMPUTATION</div>
-    <div class="comp-body">
-      <div class="comp-row"><span>Gross Salary</span><span class="font-bold">${formatIndianCurrency(data.salary.grossSalary)}</span></div>
-      <div class="comp-row sub-row"><span>Less: Standard Deduction u/s 16(ia)</span><span>-${formatIndianCurrency(data.regime === 'NEW' ? 75000 : 50000)}</span></div>
-      <div class="comp-row total-row"><span>Income from Salary</span><span>${formatIndianCurrency(taxResult.salaryIncome)}</span></div>
-    </div>
-  </div>
-  ` : ''}
-
-  <div class="comp-section">
-    <div class="comp-header">BUSINESS / PROFESSION COMPUTATION (PRESUMPTIVE)</div>
-    <div class="comp-body">
-      <div class="comp-row"><span>Section 44AD Gross Turnover</span><span class="font-bold">${formatIndianCurrency(bus.turnoverBank + bus.turnoverCash)}</span></div>
-      <div class="comp-row sub-row"><span>- Bank / Digital Receipts Mode</span><span>${formatIndianCurrency(bus.turnoverBank)}</span></div>
-      <div class="comp-row sub-row"><span>- Cash / Other Receipts Mode</span><span>${formatIndianCurrency(bus.turnoverCash)}</span></div>
-      <div class="comp-row total-row"><span>44AD Presumptive Business Income</span><span>${formatIndianCurrency(bus.presumptiveIncomeTotal)}</span></div>
-      
-      ${isProfessionActive ? `
-      <div class="comp-row" style="margin-top: 10px; border-top: 1px dashed #e2e8f0; padding-top: 10px;"><span>Section 44ADA Professional Gross Receipts</span><span class="font-bold">${formatIndianCurrency(data.profession44ADA.grossReceipts)}</span></div>
-      <div class="comp-row total-row"><span>44ADA Presumptive Professional Income</span><span>${formatIndianCurrency(data.profession44ADA.presumptiveIncome)}</span></div>
-      ` : ''}
-    </div>
-  </div>
-
-  <div class="comp-section">
-    <div class="comp-header">OTHER SOURCES DETAILS</div>
-    <div class="comp-body">
-      <div class="comp-row"><span>Savings Bank Interest</span><span>${formatIndianCurrency(data.otherSources.interestSavings)}</span></div>
-      <div class="comp-row"><span>Other Incomes / Interest</span><span>${formatIndianCurrency(data.otherSources.interestOthers)}</span></div>
-      <div class="comp-row"><span>Dividend Income</span><span>${formatIndianCurrency(data.otherSources.dividendIncome)}</span></div>
-      <div class="comp-row total-row"><span>Total Income from Other Sources</span><span>${formatIndianCurrency(taxResult.otherSourcesIncome)}</span></div>
-    </div>
-  </div>
-
-  <div class="comp-section">
-    <div class="comp-header">TAX COMPUTATION & LIABILITY (${data.regime} REGIME)</div>
-    <div class="comp-body">
-      <div class="comp-row"><span>Total Tax computed on Income Slabs</span><span>${formatIndianCurrency(taxResult.taxBeforeRebate)}</span></div>
-      ${taxResult.rebate87A > 0 ? `<div class="comp-row text-emerald"><span>Less: Rebate u/s 87A</span><span>-${formatIndianCurrency(taxResult.rebate87A)}</span></div>` : ''}
-      <div class="comp-row"><span>Add: Health & Education Cess @ 4%</span><span>${formatIndianCurrency(taxResult.cess)}</span></div>
-      <div class="comp-row total-row"><span>Total Tax Liability</span><span>${formatIndianCurrency(taxResult.totalTaxLiability)}</span></div>
-      <div class="comp-row text-emerald" style="font-weight: 700;"><span>Less: Total TDS/TCS & Prepaid Taxes</span><span>-${formatIndianCurrency(taxResult.prepaidTax)}</span></div>
-      <div class="comp-row final-row">
-        <span>Net Refund / Tax Payable Status</span>
-        <span class="${isRefund ? 'text-emerald' : 'text-rose'}">${refundOrPayableText}</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="footer">
-    <div>
-      <p>Place: <strong class="uppercase" style="color: #334155;">${p.place}</strong></p>
-      <p style="margin-top: 4px;">Date: <strong style="color: #334155;">${p.dueDate ? p.dueDate.split('-').reverse().join('-') : '31-08-2026'}</strong></p>
-    </div>
-    
-    ${qrCodeUrl ? `
-    <div class="qr-container">
-      <img class="qr-img" src="${qrCodeUrl}" alt="ITR-4 QR Summary" />
-      <span class="qr-lbl">Scan to Verify</span>
-    </div>
-    ` : ''}
-
-    <div class="sig-line">
-      <p class="uppercase" style="color: #0f172a; font-weight: 700; margin: 0;">${p.name}</p>
-      <p style="margin-top: 2px; font-size: 8px;">Signature of the Assessee</p>
-    </div>
-  </div>
-
+  
   <script>
     window.onload = function() {
       setTimeout(function() {
@@ -494,13 +381,11 @@ Verified via Portal QR Acknowledgement`;
 </body>
 </html>`;
 
-  // Create downloadable blob
   const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  const fileName = `${pdfTitle}.html`;
-  link.setAttribute('download', fileName);
+  link.setAttribute('download', `${pdfTitle}.html`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

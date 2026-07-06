@@ -166,13 +166,13 @@ export function parseITR4JSON(jsonText: string): ITR4Data {
     if (filing.ReturnFileSec) {
       const secCode = filing.ReturnFileSec.toString();
       if (secCode === '11') {
-        data.personal.filingSection = '11 (139(1)) - On or before due date';
+        data.personal.filingSection = '139(1) - On or before due date';
       } else if (secCode === '12') {
-        data.personal.filingSection = '12 (139(4)) - Belated Return';
+        data.personal.filingSection = '139(4) - Belated Return';
       } else if (secCode === '13') {
-        data.personal.filingSection = '13 (139(5)) - Revised Return';
+        data.personal.filingSection = '139(5) - Revised Return';
       } else {
-        data.personal.filingSection = `${secCode} (Section 139)`;
+        data.personal.filingSection = `139`;
       }
     } else if (filing.SectionCode) {
       data.personal.filingSection = filing.SectionCode;
