@@ -127,6 +127,25 @@ export default function App() {
     }
   }, [darkMode]);
 
+  // Temporarily strip dark mode class for clean printing
+  React.useEffect(() => {
+    const handleBeforePrint = () => {
+      document.documentElement.classList.remove('dark');
+    };
+    const handleAfterPrint = () => {
+      if (darkMode) {
+        document.documentElement.classList.add('dark');
+      }
+    };
+
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+  }, [darkMode]);
+
   // Global Keyboard Shortcuts for professional workflow
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

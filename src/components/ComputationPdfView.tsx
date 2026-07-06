@@ -3,6 +3,7 @@ import { ITR4Data } from '../types';
 import { formatIndianCurrency, calculateTax, TaxResult } from '../utils/taxCalculator';
 import { Printer, Download, ExternalLink, Info } from 'lucide-react';
 import { exportToHtmlPdf } from '../utils/htmlPdfExporter';
+import QRCode from 'qrcode';
 
 interface ComputationPdfViewProps {
   data: ITR4Data;
@@ -16,6 +17,46 @@ export default function ComputationPdfView({ data, taxResult, onPrint }: Computa
   const bus = data.business44AD;
 
   const isEmbedded = typeof window !== 'undefined' && window.self !== window.top;
+
+  const [qrCodeUrl, setQrCodeUrl] = React.useState<string>('');
+
+  React.useEffect(() => {
+    const generateQrCode = async () => {
+      try {
+        const refundOrPayable = taxResult.refundAmount > 0 
+          ? `Refund Due: ${formatIndianCurrency(taxResult.refundAmount)}` 
+          : `Tax Payable: ${formatIndianCurrency(taxResult.payableAmount)}`;
+
+        const summaryText = `ITR-4 COMPUTATION SUMMARY
+-------------------------
+Name: ${p.name.toUpperCase()}
+PAN: ${p.pan.toUpperCase()}
+AY: ${p.assessmentYear} (FY: ${p.financialYear})
+Regime: ${data.regime}
+Gross Total Income: ${formatIndianCurrency(taxResult.grossTotalIncome)}
+Total Taxable Income: ${formatIndianCurrency(taxResult.totalIncome)}
+${refundOrPayable}
+Bank Name: ${b.bankName.toUpperCase()}
+Account No: ${b.accountNumber}
+Filing Section: Section ${p.filingSection || '139(1)'}
+Verified via Portal QR Acknowledgement`;
+
+        const url = await QRCode.toDataURL(summaryText, {
+          margin: 1,
+          width: 100,
+          color: {
+            dark: '#0f172a',
+            light: '#ffffff'
+          }
+        });
+        setQrCodeUrl(url);
+      } catch (err) {
+        console.error('Error generating QR code:', err);
+      }
+    };
+
+    generateQrCode();
+  }, [p, b, taxResult, data.regime]);
 
   return (
     <div id="computation-pdf-container" className="space-y-6">
@@ -32,7 +73,13 @@ export default function ComputationPdfView({ data, taxResult, onPrint }: Computa
 
         <div className="flex flex-wrap items-center gap-2 shrink-0">
           <button
-            onClick={() => exportToHtmlPdf(data, taxResult)}
+            onClick={async () => {
+              try {
+                await exportToHtmlPdf(data, taxResult);
+              } catch (err) {
+                console.error('Error downloading print-ready file:', err);
+              }
+            }}
             className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer"
             title="Download offline HTML that automatically triggers the browser print dialog"
           >
@@ -124,9 +171,9 @@ export default function ComputationPdfView({ data, taxResult, onPrint }: Computa
               <h4 className="font-extrabold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider text-[10px] pb-1 border-b border-slate-100 dark:border-slate-800 mb-2">
                 ADDRESS & FILING
               </h4>
-              <div className="flex gap-2">
-                <span className="text-slate-400 dark:text-slate-500 font-bold shrink-0 w-16">Address:</span>
-                <span className="font-semibold text-slate-700 dark:text-slate-300 line-clamp-2 uppercase">{p.address}</span>
+              <div className="grid grid-cols-3">
+                <span className="text-slate-400 dark:text-slate-500 font-bold">Address:</span>
+                <span className="col-span-2 font-semibold text-slate-700 dark:text-slate-300 line-clamp-2 uppercase leading-normal">{p.address}</span>
               </div>
               <div className="grid grid-cols-3">
                 <span className="text-slate-400 dark:text-slate-500 font-bold">Email:</span>
@@ -200,7 +247,7 @@ export default function ComputationPdfView({ data, taxResult, onPrint }: Computa
           </div>
 
           {/* Detailed Calculations (Screen 9 details list) */}
-          <div className="mt-6 space-y-5 text-[11px] leading-relaxed">
+          <div className="mt-6 space-y-5 text-[11px] leading-relaxed print:print-page-break-before print:mt-4">
             
             {/* SALARY COMPUTATION (if salary gross > 0) */}
             {(taxResult.salaryIncome > 0 || data.salary.grossSalary > 0) && (
@@ -346,6 +393,14 @@ export default function ComputationPdfView({ data, taxResult, onPrint }: Computa
               <p>Place: <span className="font-bold text-gray-800 dark:text-slate-200 uppercase">{p.place}</span></p>
               <p className="mt-1">Date: <span className="font-bold text-gray-800 dark:text-slate-200">{p.dueDate ? p.dueDate.split('-').reverse().join('-') : '31-08-2026'}</span></p>
             </div>
+
+            {qrCodeUrl && (
+              <div className="flex flex-col items-center text-center gap-1">
+                <img src={qrCodeUrl} alt="ITR-4 QR Summary" className="w-16 h-16 border border-slate-200 dark:border-slate-800 p-0.5 rounded-lg bg-white" />
+                <span className="text-[7px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase">Scan to Verify</span>
+              </div>
+            )}
+
             <div className="text-center w-48 border-t border-gray-300 dark:border-slate-700 pt-1">
               <p className="font-bold text-gray-800 dark:text-slate-200 uppercase">{p.name}</p>
               <p className="text-[8px] mt-0.5">Signature of the Assessee</p>

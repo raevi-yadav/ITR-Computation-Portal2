@@ -1,7 +1,8 @@
 import { ITR4Data } from '../types';
 import { formatIndianCurrency, TaxResult } from './taxCalculator';
+import QRCode from 'qrcode';
 
-export function exportToHtmlPdf(data: ITR4Data, taxResult: TaxResult) {
+export async function exportToHtmlPdf(data: ITR4Data, taxResult: TaxResult) {
   const p = data.personal;
   const b = data.bank;
   const bus = data.business44AD;
@@ -13,6 +14,38 @@ export function exportToHtmlPdf(data: ITR4Data, taxResult: TaxResult) {
 
   const isSalaryActive = taxResult.salaryIncome > 0 || data.salary.grossSalary > 0;
   const isProfessionActive = data.profession44ADA.grossReceipts > 0;
+
+  let qrCodeUrl = '';
+  try {
+    const refundOrPayable = taxResult.refundAmount > 0 
+      ? `Refund Due: ${formatIndianCurrency(taxResult.refundAmount)}` 
+      : `Tax Payable: ${formatIndianCurrency(taxResult.payableAmount)}`;
+
+    const summaryText = `ITR-4 COMPUTATION SUMMARY
+-------------------------
+Name: ${p.name.toUpperCase()}
+PAN: ${p.pan.toUpperCase()}
+AY: ${p.assessmentYear} (FY: ${p.financialYear})
+Regime: ${data.regime}
+Gross Total Income: ${formatIndianCurrency(taxResult.grossTotalIncome)}
+Total Taxable Income: ${formatIndianCurrency(taxResult.totalIncome)}
+${refundOrPayable}
+Bank Name: ${b.bankName.toUpperCase()}
+Account No: ${b.accountNumber}
+Filing Section: Section ${p.filingSection || '139(1)'}
+Verified via Portal QR Acknowledgement`;
+
+    qrCodeUrl = await QRCode.toDataURL(summaryText, {
+      margin: 1,
+      width: 120,
+      color: {
+        dark: '#0f172a',
+        light: '#ffffff'
+      }
+    });
+  } catch (err) {
+    console.error('Error generating offline QR code:', err);
+  }
 
   const htmlContent = `<!DOCTYPE html>
 <html lang="en">
@@ -191,6 +224,28 @@ export function exportToHtmlPdf(data: ITR4Data, taxResult: TaxResult) {
       padding-top: 4px;
       text-align: center;
     }
+    .qr-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 4px;
+    }
+    .qr-img {
+      width: 64px;
+      height: 64px;
+      border: 1px solid #cbd5e1;
+      padding: 2px;
+      border-radius: 6px;
+      background-color: #ffffff;
+    }
+    .qr-lbl {
+      font-size: 7px;
+      font-weight: 800;
+      color: #94a3b8;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
     
     @media print {
       body {
@@ -201,6 +256,15 @@ export function exportToHtmlPdf(data: ITR4Data, taxResult: TaxResult) {
       .print-bar {
         display: none !important;
       }
+      .page-break {
+        page-break-before: always !important;
+        break-before: page !important;
+      }
+    }
+
+    .page-break {
+      page-break-before: always;
+      break-before: page;
     }
     
     /* Offline Print Bar */
@@ -299,6 +363,7 @@ export function exportToHtmlPdf(data: ITR4Data, taxResult: TaxResult) {
   </div>
 
   <!-- Detailed Sections -->
+  <div class="page-break"></div>
   ${isSalaryActive ? `
   <div class="comp-section">
     <div class="comp-header">SALARY INCOME COMPUTATION</div>
@@ -355,6 +420,14 @@ export function exportToHtmlPdf(data: ITR4Data, taxResult: TaxResult) {
       <p>Place: <strong class="uppercase" style="color: #334155;">${p.place}</strong></p>
       <p style="margin-top: 4px;">Date: <strong style="color: #334155;">${p.dueDate ? p.dueDate.split('-').reverse().join('-') : '31-08-2026'}</strong></p>
     </div>
+    
+    ${qrCodeUrl ? `
+    <div class="qr-container">
+      <img class="qr-img" src="${qrCodeUrl}" alt="ITR-4 QR Summary" />
+      <span class="qr-lbl">Scan to Verify</span>
+    </div>
+    ` : ''}
+
     <div class="sig-line">
       <p class="uppercase" style="color: #0f172a; font-weight: 700; margin: 0;">${p.name}</p>
       <p style="margin-top: 2px; font-size: 8px;">Signature of the Assessee</p>
