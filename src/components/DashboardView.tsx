@@ -163,47 +163,46 @@ export default function DashboardView({
       </motion.div>
 
       {/* Grid of Key Metadata cards (Row 1) */}
-      <div id="summary-grid-row-1" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Client Name */}
-        <div className="p-6 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between h-32 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-              CLIENT NAME
-            </span>
-            <User className="w-5 h-5 text-indigo-400 dark:text-indigo-500" />
-          </div>
-          <h3 className="text-xl font-black text-indigo-600 dark:text-indigo-400 truncate">
-            {data.personal.name || 'Upload'}
-          </h3>
+      <div id="summary-grid-row-1" className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Client Name - Takes 100% (2/2) on mobile, 50% (2/4) on desktop */}
+      <div className="col-span-2 lg:col-span-2 p-6 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between h-32 hover:shadow-md transition-shadow">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+            CLIENT NAME
+          </span>
+          <User className="w-5 h-5 text-indigo-400 dark:text-indigo-500" />
         </div>
-
-        {/* PAN */}
-        <div className="p-6 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between h-32 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-              PAN CARD
-            </span>
-            <CreditCard className="w-5 h-5 text-slate-400 dark:text-slate-500" />
-          </div>
-          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 tracking-wider">
-            {data.personal.pan || '-'}
-          </h3>
-        </div>
-
-        {/* Assessment Year */}
-        <div className="p-6 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between h-32 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-              ASSESSMENT YEAR
-            </span>
-            <Calendar className="w-5 h-5 text-orange-400 dark:text-orange-500" />
-          </div>
-          <h3 className="text-xl font-bold text-orange-600 dark:text-orange-400">
-            {data.personal.assessmentYear || '-'}
-          </h3>
-        </div>
-
+        <h3 className="text-xl font-black text-indigo-600 dark:text-indigo-400 truncate">
+          {data.personal.name || 'Upload'}
+        </h3>
       </div>
+
+      {/* PAN - Takes 50% (1/2) on mobile, 25% (1/4) on desktop */}
+      <div className="col-span-1 lg:col-span-1 p-6 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between h-32 hover:shadow-md transition-shadow">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+            PAN CARD
+          </span>
+          <CreditCard className="w-5 h-5 text-slate-400 dark:text-slate-500" />
+        </div>
+        <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 tracking-wider">
+          {data.personal.pan || '-'}
+        </h3>
+      </div>
+
+      {/* Assessment Year - Takes 50% (1/2) on mobile, 25% (1/4) on desktop */}
+      <div className="col-span-1 lg:col-span-1 p-6 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between h-32 hover:shadow-md transition-shadow">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+            ASSESSMENT YEAR
+          </span>
+          <Calendar className="w-5 h-5 text-orange-400 dark:text-orange-500" />
+        </div>
+        <h3 className="text-xl font-bold text-orange-600 dark:text-orange-400">
+          {data.personal.assessmentYear || '-'}
+        </h3>
+      </div>
+    </div>
 
       {/* Grid of Key financial calculations (Row 2) */}
       <div id="summary-grid-row-2" className="grid grid-cols-1 md:grid-cols-3 gap-4">
