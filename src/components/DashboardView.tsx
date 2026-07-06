@@ -203,16 +203,20 @@ export default function DashboardView({
           </h3>
         </div>
 
-        {/* Refund */}
+        {/* Tax Payable(+)/Refundable(-) */}
         <div className="p-6 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between h-32 hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-              EXPECTED REFUND
+              Tax Payable(+)/Refundable(-)
             </span>
-            <Coins className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />
+            <Coins className={`w-5 h-5 ${taxResult.payableAmount > 0 ? 'text-rose-500 dark:text-rose-400' : taxResult.refundAmount > 0 ? 'text-emerald-500 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`} />
           </div>
-          <h3 className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-            {taxResult.refundAmount > 0 ? formatIndianCurrency(taxResult.refundAmount) : '₹0'}
+          <h3 className={`text-2xl font-black ${taxResult.payableAmount > 0 ? 'text-rose-600 dark:text-rose-400' : taxResult.refundAmount > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400'}`}>
+            {taxResult.payableAmount > 0 
+              ? `+${formatIndianCurrency(taxResult.payableAmount)}` 
+              : taxResult.refundAmount > 0 
+                ? `-${formatIndianCurrency(taxResult.refundAmount)}` 
+                : '₹0'}
           </h3>
         </div>
       </div>

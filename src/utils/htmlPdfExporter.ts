@@ -12,9 +12,12 @@ export async function exportToHtmlPdf(data: ITR4Data, taxResult: TaxResult) {
   const pdfTitle = `${clientName}_FY${fyYear}_Computation`;
 
   const isRefund = taxResult.refundAmount > 0;
-  const refundOrPayableText = isRefund
-    ? `REFUND DUE: ${formatIndianCurrency(taxResult.refundAmount)}`
-    : `TAX PAYABLE: ${formatIndianCurrency(taxResult.payableAmount)}`;
+  const isPayable = taxResult.payableAmount > 0;
+  const refundOrPayableText = isPayable
+    ? `+${formatIndianCurrency(taxResult.payableAmount)}`
+    : isRefund
+      ? `-${formatIndianCurrency(taxResult.refundAmount)}`
+      : '₹0';
 
   const isSalaryActive = taxResult.salaryIncome > 0 || data.salary.grossSalary > 0;
   const isProfessionActive = data.profession44ADA.grossReceipts > 0;
@@ -404,8 +407,8 @@ Verified via Portal QR Acknowledgement`;
       <div class="summary-val slate">${formatIndianCurrency(taxResult.totalIncome)}</div>
     </div>
     <div class="summary-card">
-      <span class="summary-label">REFUND / PAYABLE</span>
-      <div class="summary-val ${isRefund ? 'emerald' : 'rose'}">${refundOrPayableText}</div>
+      <span class="summary-label">TAX PAYABLE(+)/REFUNDABLE(-)</span>
+      <div class="summary-val ${isPayable ? 'rose' : isRefund ? 'emerald' : 'slate'}">${refundOrPayableText}</div>
     </div>
   </div>
 

@@ -239,9 +239,13 @@ Verified via Portal QR Acknowledgement`;
               <p className="text-sm font-black text-slate-950 dark:text-white mt-1">{formatIndianCurrency(taxResult.totalIncome)}</p>
             </div>
             <div className="p-3.5 border border-slate-200 dark:border-slate-800 rounded-2xl text-center bg-slate-50/50 dark:bg-slate-950/40">
-              <span className="text-[8px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">REFUND / PAYABLE</span>
-              <p className="text-sm font-black text-emerald-600 dark:text-emerald-400 mt-1">
-                {taxResult.refundAmount > 0 ? `REFUND ${formatIndianCurrency(taxResult.refundAmount)}` : `PAYABLE ${formatIndianCurrency(taxResult.payableAmount)}`}
+              <span className="text-[8px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Tax Payable(+)/Refundable(-)</span>
+              <p className={`text-sm font-black mt-1 ${taxResult.payableAmount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                {taxResult.payableAmount > 0 
+                  ? `+${formatIndianCurrency(taxResult.payableAmount)}` 
+                  : taxResult.refundAmount > 0 
+                    ? `-${formatIndianCurrency(taxResult.refundAmount)}` 
+                    : '₹0'}
               </p>
             </div>
           </div>
