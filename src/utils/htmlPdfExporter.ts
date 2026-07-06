@@ -7,6 +7,10 @@ export async function exportToHtmlPdf(data: ITR4Data, taxResult: TaxResult) {
   const b = data.bank;
   const bus = data.business44AD;
 
+  const clientName = p.name.trim().replace(/\s+/g, '_');
+  const fyYear = (p.financialYear || '2025-26').trim().replace(/\//g, '-');
+  const pdfTitle = `${clientName}_FY${fyYear}_Computation`;
+
   const isRefund = taxResult.refundAmount > 0;
   const refundOrPayableText = isRefund
     ? `REFUND DUE: ${formatIndianCurrency(taxResult.refundAmount)}`
@@ -53,7 +57,7 @@ Verified via Portal QR Acknowledgement`;
   <meta charset="UTF-8">
   <!-- FIX 1: Explicitly tell the browser engine to render this document in light mode -->
   <meta name="color-scheme" content="light">
-  <title>Tax_Computation_${p.name.replace(/\s+/g, '_')}_AY_${p.assessmentYear || '2026-27'}</title>
+  <title>${pdfTitle}</title>
   <style>
     /* FIX 2: Hardcode light-scheme at the root layout engine block */
     html {
@@ -308,12 +312,16 @@ Verified via Portal QR Acknowledgement`;
       .page-break {
         page-break-before: always !important;
         break-before: page !important;
+        height: 1.5cm !important;
+        display: block !important;
       }
     }
 
     .page-break {
       page-break-before: always;
       break-before: page;
+      height: 1.5cm;
+      display: block;
     }
 
     /* FIX 3: Defeat forced system dark mode extensions/toggles */
@@ -488,7 +496,7 @@ Verified via Portal QR Acknowledgement`;
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  const fileName = `ITR-4_Tax_Computation_${p.name.replace(/\s+/g, '_')}_AY_${p.assessmentYear || '2026-27'}.html`;
+  const fileName = `${pdfTitle}.html`;
   link.setAttribute('download', fileName);
   document.body.appendChild(link);
   link.click();

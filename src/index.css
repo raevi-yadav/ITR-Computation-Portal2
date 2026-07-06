@@ -121,6 +121,7 @@ input[type="number"] {
   .print-page-break-before {
     page-break-before: always !important;
     break-before: page !important;
+    margin-top: 1.5cm !important; /* Space at the top of the next page for reactive print views */
   }
 }
 

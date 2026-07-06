@@ -17,8 +17,8 @@ import NotificationModal from './components/NotificationModal';
 
 const BLANK_DATA: ITR4Data = {
   personal: {
-    name: 'Upload',
-    pan: '-',
+    name: '',
+    pan: '',
     dob: '',
     aadhaar: '',
     mobile: '',
@@ -29,10 +29,10 @@ const BLANK_DATA: ITR4Data = {
     city: '',
     state: '',
     pinCode: '',
-    filingSection: '-',
+    filingSection: '',
     dueDate: '',
-    assessmentYear: '-',
-    financialYear: '-',
+    assessmentYear: '',
+    financialYear: '',
     fatherName: '',
     place: ''
   },
@@ -251,7 +251,7 @@ export default function App() {
 
   // Save/Download traditional P&L and Balance Sheet spreadsheet
   const handleDownloadExcel = () => {
-    if (data.personal.name === 'Upload') {
+    if (!data.personal.name) {
       setModalTitle('No Data Loaded');
       setModalMessage('Please upload an ITR-4 JSON file or click "Load Sample" to generate the P&L and Balance Sheet Excel file.');
       setModalType('error');
@@ -263,7 +263,7 @@ export default function App() {
 
   // Triggers print view on computation PDF
   const handlePrintPdf = () => {
-    if (data.personal.name === 'Upload') {
+    if (!data.personal.name) {
       setModalTitle('No Data Loaded');
       setModalMessage('Please upload an ITR-4 JSON file or click "Load Sample" to prepare the printable Computation PDF.');
       setModalType('error');
