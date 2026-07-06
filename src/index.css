@@ -15,8 +15,9 @@ input[type="number"] {
 
 /* Print Layout Rules */
 @media print {
-  html, body {
-    background-color: white !important;
+  html, body, #app-root-layout, #main-content-scroll, main, #computation-pdf-container {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
     color: black !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -31,7 +32,8 @@ input[type="number"] {
     min-height: 0 !important;
     height: auto !important;
     overflow: visible !important;
-    background: transparent !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
   }
 
   main {
@@ -41,6 +43,8 @@ input[type="number"] {
     width: 100% !important;
     height: auto !important;
     overflow: visible !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
   }
 
   /* Hide everything that is NOT the computation sheets */

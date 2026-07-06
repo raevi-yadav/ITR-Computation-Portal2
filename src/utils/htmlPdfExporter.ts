@@ -248,7 +248,9 @@ Verified via Portal QR Acknowledgement`;
     }
     
     @media print {
-      body {
+      html, body {
+        background-color: #ffffff !important;
+        background: #ffffff !important;
         margin: 0;
         padding: 0;
         max-width: 100%;

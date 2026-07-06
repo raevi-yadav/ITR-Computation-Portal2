@@ -247,7 +247,7 @@ Verified via Portal QR Acknowledgement`;
           </div>
 
           {/* Detailed Calculations (Screen 9 details list) */}
-          <div className="mt-6 space-y-5 text-[11px] leading-relaxed print:print-page-break-before print:mt-4">
+          <div className="mt-6 space-y-5 text-[11px] leading-relaxed print-page-break-before print:mt-4">
             
             {/* SALARY COMPUTATION (if salary gross > 0) */}
             {(taxResult.salaryIncome > 0 || data.salary.grossSalary > 0) && (
