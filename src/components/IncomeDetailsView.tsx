@@ -428,7 +428,7 @@ export default function IncomeDetailsView({
                 </td>
                 <td className="px-5 py-3 text-right text-sm font-bold text-slate-800 dark:text-slate-200">
                   {data.regime === 'OLD' 
-                    ? `-${formatIndianCurrency(taxResult.grossTotalIncome - taxResult.totalIncome)}`
+                    ? `-${formatIndianCurrency(taxResult.deductions)}`
                     : '₹0'
                   }
                 </td>
