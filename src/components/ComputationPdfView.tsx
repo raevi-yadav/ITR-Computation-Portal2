@@ -63,7 +63,7 @@ Verified via Portal QR Acknowledgement`;
       {/* Visual Header in UI (Hidden in printing) */}
       <div className="pb-4 border-b border-slate-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4 print:hidden">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             Professional Computation Report
           </h1>
           <p className="text-xs text-slate-500 font-medium mt-1">
