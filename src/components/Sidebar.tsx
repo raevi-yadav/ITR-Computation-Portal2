@@ -36,11 +36,11 @@ export default function Sidebar({
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'personal', label: 'Personal & Bank', icon: User },
-    { id: 'income', label: 'Income Details', icon: IndianRupee },
-    { id: 'presumptive', label: '44AD / 44ADA / 44AE', icon: Percent },
-    { id: 'pl-bs', label: 'P&L / Balance Sheet', icon: FileSpreadsheet },
-    { id: 'tax', label: 'Tax & TDS', icon: Calculator },
-    { id: 'pdf', label: 'Computation PDF', icon: FileText },
+    { id: 'income', label: 'Income Summary', icon: IndianRupee },
+    { id: 'presumptive', label: 'Presumptive Taxation', icon: Percent },
+    { id: 'pl-bs', label: 'Financial Statements', icon: FileSpreadsheet },
+    { id: 'tax', label: 'Tax Liability & Credits', icon: Calculator },
+    { id: 'pdf', label: 'Computation Report', icon: FileText },
   ];
 
   const handleSelect = (id: string) => {
@@ -74,7 +74,7 @@ export default function Sidebar({
       {/* Sidebar Container */}
       <aside className={`
         fixed inset-y-0 left-0 z-50 bg-indigo-700 text-white flex flex-col border-r border-indigo-800/40
-        transform transition-all duration-300 ease-in-out lg:relative lg:transform-none
+        transform transition-all duration-300 ease-in-out lg:relative lg:transform-none h-screen shrink-0
         ${sidebarOpen 
           ? 'translate-x-0 w-64 opacity-100' 
           : '-translate-x-full lg:-translate-x-full lg:w-0 lg:min-w-0 lg:opacity-0 lg:overflow-hidden'}

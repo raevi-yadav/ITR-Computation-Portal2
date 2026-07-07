@@ -57,7 +57,7 @@ export default function NotificationModal({
               <div className="mt-6 flex justify-end">
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-md hover:shadow-indigo-100 hover:shadow-lg transition-all focus:outline-hidden cursor-pointer"
+                  className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-sm transition-all focus:outline-hidden cursor-pointer"
                 >
                   Confirm
                 </button>

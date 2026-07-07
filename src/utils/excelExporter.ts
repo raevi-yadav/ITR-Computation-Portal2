@@ -1,6 +1,10 @@
 import { ITR4Data } from '../types';
 
-export function exportToExcel(data: ITR4Data) {
+export function exportToExcel(
+  data: ITR4Data,
+  customExpenses?: { name: string; value: number }[] | Record<string, number>,
+  customSuspense?: number
+) {
   const p = data.personal;
   const b = data.business44AD;
   
@@ -11,14 +15,14 @@ export function exportToExcel(data: ITR4Data) {
   };
   const yearEnded = getYearEnded(p.assessmentYear);
   
-  // Compute some dependent values for the P&L table
   const grossTurnover = b.turnoverBank + b.turnoverCash;
   const netProfit = b.presumptiveIncomeTotal;
-  const grossProfit = b.purchases > 0 ? (grossTurnover + b.closingStock - (b.openingStock + b.purchases + b.freight)) : Math.round(grossTurnover * 0.42);
+  
+  // GP is the balancing figure of the Trading Account so Trading Total matches on both sides
+  const grossProfit = (grossTurnover + b.closingStock) - (b.openingStock + b.purchases + b.freight);
   const totalIndirectExpenses = grossProfit - netProfit;
 
-  // Let's proportionally split the expenses to make the P&L balance perfectly!
-  // These figures are inspired by the screenshots:
+  // Split indirect expenses proportionally if custom ones aren't provided
   const expenseRatios = {
     salaryWages: 0.18,
     electricity: 0.07,
@@ -30,36 +34,75 @@ export function exportToExcel(data: ITR4Data) {
     legalFees: 0.10,
     printing: 0.07,
     staffWelfare: 0.06,
-    officeExps: 0.07,
-    misc: 0.16
+    officeExps: 0.07
   };
 
   const getExp = (ratio: number) => Math.round(totalIndirectExpenses * ratio);
 
-  const expSal = b.purchases > 0 ? 21007 : getExp(expenseRatios.salaryWages);
-  const expElec = b.purchases > 0 ? 8173 : getExp(expenseRatios.electricity);
-  const expConv = b.purchases > 0 ? 9340 : getExp(expenseRatios.conveyance);
-  const expAdv = b.purchases > 0 ? 5838 : getExp(expenseRatios.advertisement);
-  const expAcct = b.purchases > 0 ? 9356 : getExp(expenseRatios.accountingCharges);
-  const expRepairs = b.purchases > 0 ? 7005 : getExp(expenseRatios.repairs);
-  const expBank = b.purchases > 0 ? 2335 : getExp(expenseRatios.bankCharges);
-  const expLegal = b.purchases > 0 ? 11675 : getExp(expenseRatios.legalFees);
-  const expPrinting = b.purchases > 0 ? 8175 : getExp(expenseRatios.printing);
-  const expStaff = b.purchases > 0 ? 7006 : getExp(expenseRatios.staffWelfare);
-  const expOffice = b.purchases > 0 ? 8177 : getExp(expenseRatios.officeExps);
-  const expMisc = totalIndirectExpenses - (expSal + expElec + expConv + expAdv + expAcct + expRepairs + expBank + expLegal + expPrinting + expStaff + expOffice);
+  let expenseList: { name: string; value: number }[] = [];
 
-  // Balance sheet proportions if not entered
-  const cap = b.capital || Math.round(netProfit * 0.5);
-  const cred = b.sundryCreditors || Math.round(grossTurnover * 0.06);
-  const otherLiab = b.otherLiabilities || Math.round(grossTurnover * 0.015);
-  const totalLiab = cap + cred + otherLiab;
+  if (Array.isArray(customExpenses)) {
+    expenseList = customExpenses;
+  } else {
+    const isRecord = customExpenses && typeof customExpenses === 'object';
+    const r = isRecord ? (customExpenses as Record<string, number>) : {};
+    
+    const expSal = isRecord ? (r.salaryWages ?? 0) : (b.purchases > 0 ? 21007 : getExp(expenseRatios.salaryWages));
+    const expElec = isRecord ? (r.electricity ?? 0) : (b.purchases > 0 ? 8173 : getExp(expenseRatios.electricity));
+    const expConv = isRecord ? (r.conveyance ?? 0) : (b.purchases > 0 ? 9340 : getExp(expenseRatios.conveyance));
+    const expAdv = isRecord ? (r.advertisement ?? 0) : (b.purchases > 0 ? 5838 : getExp(expenseRatios.advertisement));
+    const expAcct = isRecord ? (r.accountingCharges ?? 0) : (b.purchases > 0 ? 9356 : getExp(expenseRatios.accountingCharges));
+    const expRepairs = isRecord ? (r.repairs ?? 0) : (b.purchases > 0 ? 7005 : getExp(expenseRatios.repairs));
+    const expBank = isRecord ? (r.bankCharges ?? 0) : (b.purchases > 0 ? 2335 : getExp(expenseRatios.bankCharges));
+    const expLegal = isRecord ? (r.legalFees ?? 0) : (b.purchases > 0 ? 11675 : getExp(expenseRatios.legalFees));
+    const expPrinting = isRecord ? (r.printing ?? 0) : (b.purchases > 0 ? 8175 : getExp(expenseRatios.printing));
+    const expStaff = isRecord ? (r.staffWelfare ?? 0) : (b.purchases > 0 ? 7006 : getExp(expenseRatios.staffWelfare));
+    const expOffice = isRecord ? (r.officeExps ?? 0) : (b.purchases > 0 ? 8177 : getExp(expenseRatios.officeExps));
 
-  const fixedAst = b.fixedAssets || Math.round(totalLiab * 0.36);
+    expenseList = [
+      { name: 'Salary & Wages', value: expSal },
+      { name: 'Electricity Exp', value: expElec },
+      { name: 'Conveyance & Travelling', value: expConv },
+      { name: 'Advertisement', value: expAdv },
+      { name: 'Accounting Charges', value: expAcct },
+      { name: 'Repair & Maintenance', value: expRepairs },
+      { name: 'Bank Charges', value: expBank },
+      { name: 'Legal & Accounting Fees', value: expLegal },
+      { name: 'Printing & Stationery', value: expPrinting },
+      { name: 'Staff Welfare', value: expStaff },
+      { name: 'Office Exps', value: expOffice }
+    ];
+  }
+
+  const sumOfExpenses = expenseList.reduce((acc, item) => acc + item.value, 0);
+  const computedMisc = totalIndirectExpenses - sumOfExpenses;
+
+  let expMisc = 0;
+  let suspenseAmount = 0;
+
+  if (computedMisc >= 0) {
+    expMisc = computedMisc;
+    suspenseAmount = 0;
+  } else {
+    expMisc = 0;
+    suspenseAmount = Math.abs(computedMisc);
+  }
+
+  // Balance sheet math matching PLBalanceSheetView
+  const capital = b.capital || Math.round(netProfit * 0.5);
+  const securedLoans = b.securedLoans || 0;
+  const unsecuredLoans = b.unsecuredLoans || 0;
+  const creditors = b.sundryCreditors || Math.round(grossTurnover * 0.06);
+  const otherLiabilities = b.otherLiabilities || Math.round(grossTurnover * 0.015);
+  const totalLiabilities = capital + securedLoans + unsecuredLoans + creditors + otherLiabilities;
+
+  const fixedAssets = b.fixedAssets || Math.round(totalLiabilities * 0.36);
   const debtors = b.sundryDebtors || Math.round(grossTurnover * 0.08);
-  const stock = b.closingStock || 77835;
-  const cash = b.cashInHand || 40000;
-  const bankBal = totalLiab - (fixedAst + debtors + stock + cash);
+  const closingStock = b.closingStock || 0;
+  const cashInHand = b.cashInHand || 0;
+  const advances = b.advances || 0;
+  const bankBalance = b.bankBalance || Math.max(0, totalLiabilities - (fixedAssets + debtors + closingStock + cashInHand + advances));
+  const totalAssets = fixedAssets + debtors + closingStock + cashInHand + bankBalance + advances;
 
   const excelContent = `
     <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
@@ -82,14 +125,14 @@ export function exportToExcel(data: ITR4Data) {
     <style>
       table { border-collapse: collapse; font-family: 'Segoe UI', Arial, sans-serif; }
       td { padding: 6px 12px; border: 1px solid #cbd5e1; font-size: 10pt; }
-      .title { font-weight: bold; font-size: 14pt; background-color: #ea580c; color: white; text-align: center; }
-      .subtitle { font-weight: bold; font-size: 11pt; background-color: #fed7aa; text-align: center; }
+      .title { font-weight: bold; font-size: 14pt; background-color: #4f46e5; color: white; text-align: center; }
+      .subtitle { font-weight: bold; font-size: 11pt; background-color: #e0e7ff; text-align: center; }
       .meta-label { font-weight: bold; background-color: #f8fafc; }
       .meta-val { background-color: #ffffff; }
       .th { font-weight: bold; background-color: #f1f5f9; text-align: left; border-bottom: 2px solid #94a3b8; }
       .number { text-align: right; }
       .bold { font-weight: bold; }
-      .section-header { font-weight: bold; font-size: 12pt; background-color: #ffedd5; color: #c2410c; text-align: center; padding: 10px; }
+      .section-header { font-weight: bold; font-size: 12pt; background-color: #e0e7ff; color: #4338ca; text-align: center; padding: 10px; }
       .total { font-weight: bold; background-color: #f1f5f9; border-top: 1px double #475569; border-bottom: 2px double #475569; }
     </style>
     </head>
@@ -100,15 +143,15 @@ export function exportToExcel(data: ITR4Data) {
         </tr>
         <tr>
           <td class="meta-label">Name</td>
-          <td class="meta-val">${p.name}</td>
+          <td class="meta-val">${p.name || ''}</td>
           <td class="meta-label">PAN</td>
-          <td class="meta-val">${p.pan}</td>
+          <td class="meta-val">${p.pan || ''}</td>
         </tr>
         <tr>
           <td class="meta-label">Assessment Year</td>
-          <td class="meta-val">${p.assessmentYear}</td>
+          <td class="meta-val">${p.assessmentYear || ''}</td>
           <td class="meta-label">Financial Year</td>
-          <td class="meta-val">${p.financialYear}</td>
+          <td class="meta-val">${p.financialYear || ''}</td>
         </tr>
         <tr>
           <td class="meta-label">Statement Date</td>
@@ -118,9 +161,9 @@ export function exportToExcel(data: ITR4Data) {
         </tr>
         <tr>
           <td class="meta-label">Gross Turnover</td>
-          <td class="meta-val class="number">${grossTurnover.toLocaleString('en-IN')}</td>
+          <td class="meta-val number">${grossTurnover.toLocaleString('en-IN')}</td>
           <td class="meta-label">Net Profit</td>
-          <td class="meta-val class="number">${netProfit.toLocaleString('en-IN')}</td>
+          <td class="meta-val number">${netProfit.toLocaleString('en-IN')}</td>
         </tr>
 
         <tr><td colspan="4"></td></tr>
@@ -150,102 +193,57 @@ export function exportToExcel(data: ITR4Data) {
           <td class="number">${b.closingStock.toLocaleString('en-IN')}</td>
         </tr>
         <tr>
-          <td>To Freight</td>
+          <td>To Freight & Carriage</td>
           <td class="number">${b.freight.toLocaleString('en-IN')}</td>
-          <td>-</td>
-          <td class="number">0</td>
+          <td></td>
+          <td class="number"></td>
         </tr>
         <tr>
           <td>To Gross Profit c/d</td>
           <td class="number bold">${grossProfit.toLocaleString('en-IN')}</td>
-          <td>-</td>
-          <td class="number">0</td>
+          <td></td>
+          <td class="number"></td>
         </tr>
         <tr class="total">
-          <td>TOTAL</td>
+          <td>Trading Total</td>
           <td class="number">${(b.openingStock + b.purchases + b.freight + grossProfit).toLocaleString('en-IN')}</td>
-          <td>TOTAL</td>
+          <td>Trading Total</td>
           <td class="number">${(grossTurnover + b.closingStock).toLocaleString('en-IN')}</td>
         </tr>
 
         <!-- P&L Account -->
-        <tr>
-          <td>To Salary & Wages</td>
-          <td class="number">${expSal.toLocaleString('en-IN')}</td>
-          <td>By Gross Profit b/d</td>
-          <td class="number bold">${grossProfit.toLocaleString('en-IN')}</td>
-        </tr>
-        <tr>
-          <td>To Electricity Exp</td>
-          <td class="number">${expElec.toLocaleString('en-IN')}</td>
-          <td>-</td>
-          <td class="number">0</td>
-        </tr>
-        <tr>
-          <td>To Conveyance & Travelling</td>
-          <td class="number">${expConv.toLocaleString('en-IN')}</td>
-          <td>-</td>
-          <td class="number">0</td>
-        </tr>
-        <tr>
-          <td>To Advertisement</td>
-          <td class="number">${expAdv.toLocaleString('en-IN')}</td>
-          <td>-</td>
-          <td class="number">0</td>
-        </tr>
-        <tr>
-          <td>To Accounting Charges</td>
-          <td class="number">${expAcct.toLocaleString('en-IN')}</td>
-          <td>-</td>
-          <td class="number">0</td>
-        </tr>
-        <tr>
-          <td>To Repair & Maintenance</td>
-          <td class="number">${expRepairs.toLocaleString('en-IN')}</td>
-          <td>-</td>
-          <td class="number">0</td>
-        </tr>
-        <tr>
-          <td>To Bank Charges</td>
-          <td class="number">${expBank.toLocaleString('en-IN')}</td>
-          <td>-</td>
-          <td class="number">0</td>
-        </tr>
-        <tr>
-          <td>To Legal & Accounting Fees</td>
-          <td class="number">${expLegal.toLocaleString('en-IN')}</td>
-          <td>-</td>
-          <td class="number">0</td>
-        </tr>
-        <tr>
-          <td>To Printing & Stationery</td>
-          <td class="number">${expPrinting.toLocaleString('en-IN')}</td>
-          <td>-</td>
-          <td class="number">0</td>
-        </tr>
-        <tr>
-          <td>To Staff Welfare</td>
-          <td class="number">${expStaff.toLocaleString('en-IN')}</td>
-          <td>-</td>
-          <td class="number">0</td>
-        </tr>
-        <tr>
-          <td>To Office Exps</td>
-          <td class="number">${expOffice.toLocaleString('en-IN')}</td>
-          <td>-</td>
-          <td class="number">0</td>
-        </tr>
+        ${expenseList.map((item, idx) => {
+          const rightColPart = idx === 0 ? 'By Gross Profit b/d' : '';
+          const rightColAmt = idx === 0 ? grossProfit.toLocaleString('en-IN') : '';
+          const rightColClass = idx === 0 ? 'class="number bold"' : 'class="number"';
+          return `
+            <tr>
+              <td>To ${item.name}</td>
+              <td class="number">${item.value.toLocaleString('en-IN')}</td>
+              <td>${rightColPart}</td>
+              <td ${rightColClass}>${rightColAmt}</td>
+            </tr>
+          `;
+        }).join('')}
         <tr>
           <td>To Misc. Exp.</td>
           <td class="number">${expMisc.toLocaleString('en-IN')}</td>
-          <td>-</td>
-          <td class="number">0</td>
+          <td></td>
+          <td class="number"></td>
         </tr>
+        ${suspenseAmount > 0 ? `
+        <tr>
+          <td class="bold">To Suspense / Expense Difference</td>
+          <td class="number bold" style="color: #ea580c;">${suspenseAmount.toLocaleString('en-IN')}</td>
+          <td></td>
+          <td class="number"></td>
+        </tr>
+        ` : ''}
         <tr>
           <td class="bold">To Net Profit as per JSON</td>
           <td class="number bold">${netProfit.toLocaleString('en-IN')}</td>
-          <td>-</td>
-          <td class="number">0</td>
+          <td></td>
+          <td class="number"></td>
         </tr>
         <tr class="total">
           <td>TOTAL Expenses + Profit</td>
@@ -268,39 +266,45 @@ export function exportToExcel(data: ITR4Data) {
         </tr>
         <tr>
           <td>Proprietor's Capital Account</td>
-          <td class="number">${cap.toLocaleString('en-IN')}</td>
+          <td class="number">${capital.toLocaleString('en-IN')}</td>
           <td>Fixed Assets</td>
-          <td class="number">${fixedAst.toLocaleString('en-IN')}</td>
+          <td class="number">${fixedAssets.toLocaleString('en-IN')}</td>
         </tr>
         <tr>
-          <td>Sundry Creditors</td>
-          <td class="number">${cred.toLocaleString('en-IN')}</td>
+          <td>Secured Loans</td>
+          <td class="number">${securedLoans.toLocaleString('en-IN')}</td>
           <td>Sundry Debtors</td>
           <td class="number">${debtors.toLocaleString('en-IN')}</td>
         </tr>
         <tr>
-          <td>Other Liabilities</td>
-          <td class="number">${otherLiab.toLocaleString('en-IN')}</td>
+          <td>Unsecured Loans</td>
+          <td class="number">${unsecuredLoans.toLocaleString('en-IN')}</td>
           <td>Closing Stock</td>
-          <td class="number">${stock.toLocaleString('en-IN')}</td>
+          <td class="number">${closingStock.toLocaleString('en-IN')}</td>
         </tr>
         <tr>
-          <td>-</td>
-          <td class="number">0</td>
+          <td>Sundry Creditors</td>
+          <td class="number">${creditors.toLocaleString('en-IN')}</td>
+          <td>Loans & Advances Given</td>
+          <td class="number">${advances.toLocaleString('en-IN')}</td>
+        </tr>
+        <tr>
+          <td>Other Liabilities</td>
+          <td class="number">${otherLiabilities.toLocaleString('en-IN')}</td>
           <td>Cash in Hand</td>
-          <td class="number">${cash.toLocaleString('en-IN')}</td>
+          <td class="number">${cashInHand.toLocaleString('en-IN')}</td>
         </tr>
         <tr>
-          <td>-</td>
-          <td class="number">0</td>
+          <td></td>
+          <td class="number"></td>
           <td>Bank Balance</td>
-          <td class="number">${Math.max(0, bankBal).toLocaleString('en-IN')}</td>
+          <td class="number">${bankBalance.toLocaleString('en-IN')}</td>
         </tr>
         <tr class="total">
           <td>TOTAL LIABILITIES</td>
-          <td class="number">${totalLiab.toLocaleString('en-IN')}</td>
+          <td class="number">${totalLiabilities.toLocaleString('en-IN')}</td>
           <td>TOTAL ASSETS</td>
-          <td class="number">${totalLiab.toLocaleString('en-IN')}</td>
+          <td class="number">${totalAssets.toLocaleString('en-IN')}</td>
         </tr>
       </table>
     </body>

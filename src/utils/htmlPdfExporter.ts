@@ -252,13 +252,15 @@ ${refundOrPayable}`;
           <td class="amt-col">${formatIndianCurrency(bus.turnoverBank + bus.turnoverCash)}</td>
         </tr>
         <tr>
-          <td style="padding-left: 40px;">- Declared Profit (Bank / Digital Mode)</td>
-          <td class="amt-col">${formatIndianCurrency(bus.turnoverBank * 0.06)}</td>
+          <td style="padding-left: 40px;">- Declared Business Profit (Sec 44AD)</td>
+          <td class="amt-col">${formatIndianCurrency(bus.presumptiveIncomeTotal)}</td>
         </tr>
+        ${data.business44AE && data.business44AE.presumptiveIncomeTotal > 0 ? `
         <tr>
-          <td style="padding-left: 40px;">- Declared Profit (Cash / Other Mode)</td>
-          <td class="amt-col">${formatIndianCurrency(bus.turnoverCash * 0.08)}</td>
+          <td style="padding-left: 20px;">Presumptive Transport Profit (Sec 44AE - ${data.business44AE.vehicles?.length || 0} Carriages)</td>
+          <td class="amt-col">${formatIndianCurrency(data.business44AE.presumptiveIncomeTotal)}</td>
         </tr>
+        ` : ''}
         ${isProfessionActive ? `
         <tr>
           <td style="padding-left: 20px;">Professional Gross Receipts (Sec 44ADA)</td>
@@ -271,7 +273,7 @@ ${refundOrPayable}`;
         ` : ''}
         <tr>
           <td class="text-right"><strong>Net Business & Profession Income</strong></td>
-          <td class="amt-col"><strong>${formatIndianCurrency(bus.presumptiveIncomeTotal + (isProfessionActive ? data.profession44ADA.presumptiveIncome : 0))}</strong></td>
+          <td class="amt-col"><strong>${formatIndianCurrency(taxResult.businessIncome + taxResult.professionIncome)}</strong></td>
         </tr>
 
         <!-- Other Sources -->

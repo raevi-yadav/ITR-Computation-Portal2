@@ -142,7 +142,7 @@ export default function App() {
   const handleLoadSample = () => {
     setData(JSON.parse(JSON.stringify(SAMPLE_DATA)));
     setModalTitle('Sample ITR-4 Data Loaded');
-    setModalMessage('Sample ITR-4 data loaded. Now open P&L / Balance Sheet, Computation PDF, or Download Excel to understand the app.');
+    setModalMessage('Now open Finance Statement, Computation Doc, or Download Excel to understand the app.');
     setModalType('success');
     setModalOpen(true);
   };
@@ -229,7 +229,7 @@ export default function App() {
   };
 
   return (
-    <div id="app-root-layout" className="flex flex-col lg:flex-row min-h-screen bg-slate-50/50 dark:bg-slate-950 transition-colors duration-200">
+    <div id="app-root-layout" className="flex flex-col lg:flex-row h-screen overflow-hidden bg-slate-50/50 dark:bg-slate-950 transition-colors duration-200">
       {/* Fixed Sidebar */}
       <Sidebar 
         currentTab={tab} 
@@ -253,7 +253,7 @@ export default function App() {
       )}
 
       {/* Main View Container */}
-      <main id="main-content-scroll" className="flex-1 overflow-y-auto px-4 py-6 md:px-8 print:p-0">
+      <main id="main-content-scroll" className="flex-1 h-screen overflow-y-auto px-4 py-6 md:px-8 print:p-0">
         <div className="max-w-5xl mx-auto">
           {renderActiveView()}
         </div>

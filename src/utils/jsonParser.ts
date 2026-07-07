@@ -269,6 +269,99 @@ export function parseITR4JSON(jsonText: string): ITR4Data {
         data.business44AD.bankBalance = Number(kp.BalWithBanks !== undefined ? kp.BalWithBanks : kp.BankBalance);
       }
       if (kp.FixedAssets !== undefined) data.business44AD.fixedAssets = Number(kp.FixedAssets);
+
+      // Extended fields
+      if (kp.SecuredLoans !== undefined) data.business44AD.securedLoans = Number(kp.SecuredLoans);
+      else if (kp.SecuredLoan !== undefined) data.business44AD.securedLoans = Number(kp.SecuredLoan);
+      
+      if (kp.UnsecuredLoans !== undefined) data.business44AD.unsecuredLoans = Number(kp.UnsecuredLoans);
+      else if (kp.UnsecuredLoan !== undefined) data.business44AD.unsecuredLoans = Number(kp.UnsecuredLoan);
+      
+      if (kp.Advances !== undefined) data.business44AD.advances = Number(kp.Advances);
+      else if (kp.AdvAnc !== undefined) data.business44AD.advances = Number(kp.AdvAnc);
+    }
+
+    // Parse Trade Name and Nature of Business Code
+    let tradeName = '';
+    let businessCode = '';
+
+    const searchTradeAndCode = (obj: any) => {
+      if (!obj || typeof obj !== 'object') return;
+      if (obj.TradeName && !tradeName) tradeName = String(obj.TradeName);
+      if (obj.TradeName1 && !tradeName) tradeName = String(obj.TradeName1);
+      if (obj.NameOfBusiness && !tradeName) tradeName = String(obj.NameOfBusiness);
+      if (obj.NameOfProprietorship && !tradeName) tradeName = String(obj.NameOfProprietorship);
+
+      if (obj.BusinessCode && !businessCode) businessCode = String(obj.BusinessCode);
+      if (obj.NatOfBusCode && !businessCode) businessCode = String(obj.NatOfBusCode);
+      if (obj.NatureOfBusCode && !businessCode) businessCode = String(obj.NatureOfBusCode);
+      if (obj.Code && !businessCode) businessCode = String(obj.Code);
+
+      if (!tradeName || !businessCode) {
+        for (const key of Object.keys(obj)) {
+          if (obj[key] && typeof obj[key] === 'object') {
+            searchTradeAndCode(obj[key]);
+          }
+        }
+      }
+    };
+    
+    searchTradeAndCode(itr4);
+    if (tradeName) data.business44AD.tradeName = tradeName;
+    if (businessCode) data.business44AD.businessCode = businessCode;
+
+    // 4b. Presumptive Business 44AE
+    const vehicles: any[] = [];
+    const search44AEVehicles = (obj: any) => {
+      if (!obj || typeof obj !== 'object') return;
+      if (Array.isArray(obj.GdsCarriageDtls) || Array.isArray(obj.GdsCarriageDetails) || Array.isArray(obj.CarriageDetails) || Array.isArray(obj.Sec44AEVehicles)) {
+        const list = obj.GdsCarriageDtls || obj.GdsCarriageDetails || obj.CarriageDetails || obj.Sec44AEVehicles;
+        for (const item of list) {
+          const regNo = item.RegNo || item.RegistrationNo || item.VehicleNo || '';
+          const isHeavy = !!(item.IsHeavyGdsVehicle === 'Y' || item.IsHeavyGdsVehicle === 'Yes' || item.IsHeavyGdsVehicle === true || item.HeavyVehicleY_N === 'Y');
+          const tonnage = Number(item.Tonnage || item.GrossVehicleWeight || item.Capacity || 0);
+          const months = Number(item.MonthOwned || item.NoOfMonths || item.MonthsOwned || 0);
+          const presInc = Number(item.PresumptiveInc || item.DeemedIncome || item.PresumptiveIncome || 0);
+          const declInc = Number(item.IncomeDeclared || item.DeclaredIncome || item.DeemedIncome || item.PresumptiveIncome || item.PresumptiveInc || 0);
+
+          vehicles.push({
+            registrationNumber: regNo,
+            isHeavy,
+            tonnage,
+            monthsOwned: months,
+            presumptiveIncome: presInc || (isHeavy ? tonnage * 1000 * months : 7500 * months),
+            declaredIncome: declInc || presInc || (isHeavy ? tonnage * 1000 * months : 7500 * months)
+          });
+        }
+      } else if (obj.RegNo || obj.RegistrationNo) {
+        const regNo = obj.RegNo || obj.RegistrationNo || obj.VehicleNo || '';
+        const isHeavy = !!(obj.IsHeavyGdsVehicle === 'Y' || obj.IsHeavyGdsVehicle === 'Yes' || obj.IsHeavyGdsVehicle === true || obj.HeavyVehicleY_N === 'Y');
+        const tonnage = Number(obj.Tonnage || obj.GrossVehicleWeight || obj.Capacity || 0);
+        const months = Number(obj.MonthOwned || obj.NoOfMonths || obj.MonthsOwned || 0);
+        const presInc = Number(obj.PresumptiveInc || obj.DeemedIncome || obj.PresumptiveIncome || 0);
+        const declInc = Number(obj.IncomeDeclared || obj.DeclaredIncome || obj.DeemedIncome || obj.PresumptiveIncome || obj.PresumptiveInc || 0);
+
+        vehicles.push({
+          registrationNumber: regNo,
+          isHeavy,
+          tonnage,
+          monthsOwned: months,
+          presumptiveIncome: presInc || (isHeavy ? tonnage * 1000 * months : 7500 * months),
+          declaredIncome: declInc || presInc || (isHeavy ? tonnage * 1000 * months : 7500 * months)
+        });
+      } else {
+        for (const key of Object.keys(obj)) {
+          if (obj[key] && typeof obj[key] === 'object') {
+            search44AEVehicles(obj[key]);
+          }
+        }
+      }
+    };
+
+    search44AEVehicles(itr4);
+    if (vehicles.length > 0) {
+      data.business44AE.vehicles = vehicles;
+      data.business44AE.presumptiveIncomeTotal = vehicles.reduce((sum, v) => sum + v.declaredIncome, 0);
     }
 
     // 5. Presumptive Profession (44ADA)
@@ -368,6 +461,95 @@ export function parseITR4JSON(jsonText: string): ITR4Data {
       if (tp.AdvanceTax !== undefined && taxesPaid.AdvanceTax === undefined) data.prepaid.advanceTax = Number(tp.AdvanceTax);
       if (tp.SelfAssessmentTax !== undefined && taxesPaid.SelfAssessmentTax === undefined) data.prepaid.selfAssessmentTax = Number(tp.SelfAssessmentTax);
 
+      // Map arrays safely even if they are a single object or undefined
+      const ensureArray = (val: any): any[] => {
+        if (!val) return [];
+        if (Array.isArray(val)) return val;
+        return [val];
+      };
+
+      // 1. Schedule TDS1 (Salary)
+      const tds1Raw = ensureArray(itr4.TDSonSalaries?.TDSonSalary || itr4.Tds1 || itr4.tds1 || tp.TDSonSalaries?.TDSonSalary || tp.Tds1 || tp.tds1);
+      data.prepaid.tds1Entries = tds1Raw.map((entry: any) => ({
+        deductorName: entry.EmployerName || entry.Name || entry.Employer_Name || entry.deductorName || '',
+        tan: entry.EmployerTAN || entry.TAN || entry.tan || '',
+        taxDeducted: Number(entry.TDSAmt || entry.TaxDeducted || entry.taxDeducted || 0)
+      })).filter((e: any) => e.tan || e.deductorName);
+
+      // 2. Schedule TDS2 (Other)
+      const tds2Raw = ensureArray(itr4.TDSonOthThanSals?.TDSonOthThanSal || itr4.Tds2 || itr4.tds2 || tp.TDSonOthThanSals?.TDSonOthThanSal || tp.Tds2 || tp.tds2);
+      data.prepaid.tds2Entries = tds2Raw.map((entry: any) => ({
+        deductorName: entry.DeductorName || entry.Name || entry.deductorName || '',
+        tan: entry.DeductorTAN || entry.TAN || entry.tan || '',
+        taxDeducted: Number(entry.TDSAmt || entry.TaxDeducted || entry.taxDeducted || 0)
+      })).filter((e: any) => e.tan || e.deductorName);
+
+      // 3. Schedule TCS
+      const tcsRaw = ensureArray(itr4.SchTCS?.TCS || itr4.Tcs || itr4.tcs || tp.SchTCS?.TCS || tp.Tcs || tp.tcs);
+      data.prepaid.tcsEntries = tcsRaw.map((entry: any) => ({
+        deductorName: entry.CollectorName || entry.Name || entry.deductorName || '',
+        tan: entry.CollectorTAN || entry.TAN || entry.tan || '',
+        taxDeducted: Number(entry.TCSAmt || entry.Amt || entry.TaxCollected || entry.TaxDeducted || entry.taxDeducted || 0)
+      })).filter((e: any) => e.tan || e.deductorName);
+
+      // 4. Schedule IT (Advance Tax & Self Assessment Tax)
+      const itRaw = ensureArray(itr4.ScheduleIT?.IT || itr4.SchIT?.IT || itr4.IT || itr4.it || tp.ScheduleIT?.IT || tp.SchIT?.IT || tp.IT || tp.it);
+      const itEntriesParsed = itRaw.map((entry: any) => ({
+        bsrCode: entry.BSRCode || entry.bsrCode || '',
+        datePaid: entry.DateDep || entry.DatePaid || entry.datePaid || '',
+        challanNo: entry.SrlNoOfChallan || entry.ChallanNo || entry.challanNo || '',
+        taxPaid: Number(entry.Amt || entry.Amount || entry.TaxPaid || entry.taxPaid || 0)
+      })).filter((e: any) => e.bsrCode || e.challanNo);
+
+      data.prepaid.advanceTaxEntries = [];
+      data.prepaid.selfAssessmentTaxEntries = [];
+
+      itEntriesParsed.forEach((entry: any) => {
+        if (entry.datePaid) {
+          const dateStr = entry.datePaid.toString();
+          let isAdvance = true;
+          const matchYMD = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+          const matchDMY = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+          if (matchYMD) {
+            const yr = parseInt(matchYMD[1], 10);
+            const mo = parseInt(matchYMD[2], 10);
+            if (yr > 2026 || (yr === 2026 && mo > 3)) {
+              isAdvance = false;
+            }
+          } else if (matchDMY) {
+            const yr = parseInt(matchDMY[3], 10);
+            const mo = parseInt(matchDMY[2], 10);
+            if (yr > 2026 || (yr === 2026 && mo > 3)) {
+              isAdvance = false;
+            }
+          }
+          if (isAdvance) {
+            data.prepaid.advanceTaxEntries?.push(entry);
+          } else {
+            data.prepaid.selfAssessmentTaxEntries?.push(entry);
+          }
+        } else {
+          data.prepaid.advanceTaxEntries?.push(entry);
+        }
+      });
+
+      // Auto-populate from parsed entries if flat fields were empty/missing
+      if (data.prepaid.tds1Entries.length > 0 && data.prepaid.tdsSalary === 0) {
+        data.prepaid.tdsSalary = data.prepaid.tds1Entries.reduce((sum, e) => sum + e.taxDeducted, 0);
+      }
+      if (data.prepaid.tds2Entries.length > 0 && data.prepaid.tdsOthers === 0) {
+        data.prepaid.tdsOthers = data.prepaid.tds2Entries.reduce((sum, e) => sum + e.taxDeducted, 0);
+      }
+      if (data.prepaid.tcsEntries.length > 0 && data.prepaid.tcsPaid === 0) {
+        data.prepaid.tcsPaid = data.prepaid.tcsEntries.reduce((sum, e) => sum + e.taxDeducted, 0);
+      }
+      if (data.prepaid.advanceTaxEntries.length > 0 && data.prepaid.advanceTax === 0) {
+        data.prepaid.advanceTax = data.prepaid.advanceTaxEntries.reduce((sum, e) => sum + e.taxPaid, 0);
+      }
+      if (data.prepaid.selfAssessmentTaxEntries.length > 0 && data.prepaid.selfAssessmentTax === 0) {
+        data.prepaid.selfAssessmentTax = data.prepaid.selfAssessmentTaxEntries.reduce((sum, e) => sum + e.taxPaid, 0);
+      }
+
       data.prepaid.totalTDS = data.prepaid.tdsSalary + data.prepaid.tdsOthers;
       data.prepaid.totalPrepaid = data.prepaid.totalTDS + data.prepaid.tcsPaid + data.prepaid.advanceTax + data.prepaid.selfAssessmentTax;
     }
@@ -378,6 +560,7 @@ export function parseITR4JSON(jsonText: string): ITR4Data {
     if (raw.salary) data.salary = { ...data.salary, ...raw.salary };
     if (raw.houseProperty) data.houseProperty = { ...data.houseProperty, ...raw.houseProperty };
     if (raw.business44AD) data.business44AD = { ...data.business44AD, ...raw.business44AD };
+    if (raw.business44AE) data.business44AE = { ...data.business44AE, ...raw.business44AE };
     if (raw.profession44ADA) data.profession44ADA = { ...data.profession44ADA, ...raw.profession44ADA };
     if (raw.otherSources) data.otherSources = { ...data.otherSources, ...raw.otherSources };
     if (raw.deductions) data.deductions = { ...data.deductions, ...raw.deductions };

@@ -55,7 +55,16 @@ export const SAMPLE_DATA: ITR4Data = {
     capital: 0,
     otherLiabilities: 0,
     bankBalance: 0,
-    fixedAssets: 0
+    fixedAssets: 0,
+    securedLoans: 0,
+    unsecuredLoans: 0,
+    advances: 0,
+    tradeName: 'DEMO ENTERPRISES',
+    businessCode: '16003'
+  },
+  business44AE: {
+    vehicles: [],
+    presumptiveIncomeTotal: 0
   },
   profession44ADA: {
     grossReceipts: 0,
@@ -79,10 +88,24 @@ export const SAMPLE_DATA: ITR4Data = {
     tdsSalary: 60000,
     tdsOthers: 10438,
     tcsPaid: 0,
-    advanceTax: 0,
-    selfAssessmentTax: 0,
+    advanceTax: 15000,
+    selfAssessmentTax: 5000,
     totalTDS: 70438,
-    totalPrepaid: 70438
+    totalPrepaid: 90438,
+    tds1Entries: [
+      { deductorName: 'ACME TECHNOLOGIES PVT LTD', tan: 'KRTN01234D', taxDeducted: 60000 }
+    ],
+    tds2Entries: [
+      { deductorName: 'STATE BANK OF INDIA', tan: 'MUMS00123A', taxDeducted: 7438 },
+      { deductorName: 'RELIANCE INDUSTRIES LTD', tan: 'MUMR05678B', taxDeducted: 3000 }
+    ],
+    tcsEntries: [],
+    advanceTaxEntries: [
+      { bsrCode: '0210603', datePaid: '2025-12-15', challanNo: '04821', taxPaid: 15000 }
+    ],
+    selfAssessmentTaxEntries: [
+      { bsrCode: '0210603', datePaid: '2026-07-05', challanNo: '10924', taxPaid: 5000 }
+    ]
   },
   regime: 'NEW'
 };
@@ -155,7 +178,12 @@ export function calculateTax(data: ITR4Data): TaxResult {
   const min44ADCash = data.business44AD.turnoverCash * 0.08;
   const presumptiveCalculated = min44ADDigital + min44ADCash;
   // Use presumptive profit declared, which should be >= presumptive calculated
-  const businessIncome = Math.max(presumptiveCalculated, data.business44AD.presumptiveIncomeTotal);
+  const businessIncome44AD = Math.max(presumptiveCalculated, data.business44AD.presumptiveIncomeTotal);
+  
+  // 44AE presumptive income from heavy/light goods carriages
+  const businessIncome44AE = data.business44AE?.presumptiveIncomeTotal || 0;
+  
+  const businessIncome = businessIncome44AD + businessIncome44AE;
 
   // 4. Head 4: Profession Income (44ADA)
   // 44ADA presumptive: 50% of receipts

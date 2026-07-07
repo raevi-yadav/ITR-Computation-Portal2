@@ -57,6 +57,26 @@ export interface PresumptiveBusiness {
   otherLiabilities: number;
   bankBalance: number;
   fixedAssets: number;
+  // Extended fields
+  securedLoans: number;
+  unsecuredLoans: number;
+  advances: number;
+  tradeName: string;
+  businessCode: string;
+}
+
+export interface Vehicle44AE {
+  registrationNumber: string;
+  isHeavy: boolean;
+  tonnage: number; // in Metric Tonnes (only applicable if isHeavy is true)
+  monthsOwned: number; // 1 to 12
+  presumptiveIncome: number;
+  declaredIncome: number;
+}
+
+export interface PresumptiveBusiness44AE {
+  vehicles: Vehicle44AE[];
+  presumptiveIncomeTotal: number;
 }
 
 export interface PresumptiveProfession {
@@ -80,6 +100,25 @@ export interface TaxDeductions {
   totalDeductions: number;
 }
 
+export interface TDSEntry {
+  deductorName: string;
+  tan: string;
+  taxDeducted: number;
+}
+
+export interface TCSEntry {
+  deductorName: string;
+  tan: string;
+  taxDeducted: number;
+}
+
+export interface ITChallanEntry {
+  bsrCode: string;
+  datePaid: string;
+  challanNo: string;
+  taxPaid: number;
+}
+
 export interface PrepaidTax {
   tdsSalary: number;
   tdsOthers: number;
@@ -88,6 +127,11 @@ export interface PrepaidTax {
   selfAssessmentTax: number;
   totalTDS: number;
   totalPrepaid: number;
+  tds1Entries?: TDSEntry[];
+  tds2Entries?: TDSEntry[];
+  tcsEntries?: TCSEntry[];
+  advanceTaxEntries?: ITChallanEntry[];
+  selfAssessmentTaxEntries?: ITChallanEntry[];
 }
 
 export interface ITR4Data {
@@ -96,6 +140,7 @@ export interface ITR4Data {
   salary: SalaryIncome;
   houseProperty: HousePropertyIncome;
   business44AD: PresumptiveBusiness;
+  business44AE: PresumptiveBusiness44AE;
   profession44ADA: PresumptiveProfession;
   otherSources: OtherSourcesIncome;
   deductions: TaxDeductions;
@@ -159,7 +204,16 @@ export function createBlankData(): ITR4Data {
       capital: 0,
       otherLiabilities: 0,
       bankBalance: 0,
-      fixedAssets: 0
+      fixedAssets: 0,
+      securedLoans: 0,
+      unsecuredLoans: 0,
+      advances: 0,
+      tradeName: '',
+      businessCode: ''
+    },
+    business44AE: {
+      vehicles: [],
+      presumptiveIncomeTotal: 0
     },
     profession44ADA: {
       grossReceipts: 0,
@@ -186,7 +240,12 @@ export function createBlankData(): ITR4Data {
       advanceTax: 0,
       selfAssessmentTax: 0,
       totalTDS: 0,
-      totalPrepaid: 0
+      totalPrepaid: 0,
+      tds1Entries: [],
+      tds2Entries: [],
+      tcsEntries: [],
+      advanceTaxEntries: [],
+      selfAssessmentTaxEntries: []
     },
     regime: 'NEW'
   };

@@ -66,9 +66,6 @@ Verified via Portal QR Acknowledgement`;
           <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             Professional Computation Report
           </h1>
-          <p className="text-xs text-slate-500 font-medium mt-1">
-            Standard format for tax computations.
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 shrink-0">
@@ -89,34 +86,13 @@ Verified via Portal QR Acknowledgement`;
 
           <button
             onClick={onPrint}
-            className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-2xl shadow-md hover:shadow-indigo-100 hover:shadow-lg transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-2xl shadow-sm transition-all cursor-pointer"
           >
             <Printer className="w-4.5 h-4.5" />
             Save PDF
           </button>
         </div>
       </div>
-
-      {/* Iframe Sandboxing Information Banner */}
-      {isEmbedded && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 print:hidden">
-          <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-          <div className="text-xs text-amber-900 space-y-1.5 leading-relaxed">
-            <p className="font-bold">Important Note on PDF Saving inside the Sandbox Editor</p>
-            <p>
-              Browsers block print commands from inside embedded preview frames. To save this document as a PDF, you have two options:
-            </p>
-            <ul className="list-disc pl-4 space-y-1 font-medium text-amber-800">
-              <li>
-                Click <strong className="text-amber-950">"Download Print-Ready File"</strong> above. Opening this single downloaded file on your computer opens a clean window which immediately fires the standard print/PDF save prompt.
-              </li>
-              <li>
-                Or, click the <strong className="text-amber-950">"Open App in New Tab"</strong> button (arrow icon in the top-right corner of the preview frame), and click <strong className="text-amber-950">"Save PDF"</strong> there.
-              </li>
-            </ul>
-          </div>
-        </div>
-      )}
 
       {/* Styled A4 sheet mockup for screen display - which turns into perfect direct page in print */}
       <div 

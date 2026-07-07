@@ -81,34 +81,6 @@ export default function DashboardView({
           <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             ITR-4 Computation Portal
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1 max-w-xl">
-            Professional drafting, automated balance sheets, and tax reports from official ITR-4 JSONs.
-          </p>
-        </div>
-
-        {/* Dynamic header buttons matching Vibrant Palette */}
-        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-          <button
-            onClick={() => setTab('pl-bs')}
-            className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-orange-600 rounded-2xl hover:bg-orange-500 transition-all cursor-pointer"
-          >
-            <Building className="w-4 h-4" />
-            Open P&L / Balance Sheet
-          </button>
-          <button
-            onClick={onDownloadExcel}
-            className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-teal-600 rounded-2xl hover:bg-teal-500 transition-all cursor-pointer"
-          >
-            <Download className="w-4 h-4" />
-            Download Excel
-          </button>
-          <button
-            onClick={onPrintPdf}
-            className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-blue-600 rounded-2xl hover:bg-blue-500 transition-all cursor-pointer"
-          >
-            <Printer className="w-4 h-4" />
-            Save PDF
-          </button>
         </div>
       </div>
 
@@ -140,9 +112,6 @@ export default function DashboardView({
               Upload ITR-4 JSON File
             </h2>
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium max-w-2xl leading-relaxed">
-            Drag and drop your official XML/JSON tax filing schema here. TaxEase will automatically calculate head-wise deductions, presumptive sections, and construct standard double-entry ledger sheets.
-          </p>
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
@@ -250,38 +219,40 @@ export default function DashboardView({
         </div>
       </div>
 
-      {/* Indigo disclaimer info box */}
-      <div className="p-4 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 rounded-2xl flex items-start gap-3">
-        <Info className="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
-        <p className="text-xs text-indigo-800 dark:text-indigo-200 leading-normal font-medium">
-          This is an offline-first ITR-4 professional utility. It parses official JSON tax schemas, computes presumptive business heads under Section 44AD/44ADA, and generates formatted double-entry ledger records. All operations occur client-side; no data is transmitted.
-        </p>
-      </div>
-
-      {/* P&L + Balance Sheet Quick Action Box (Matches bottom card in screen 5) */}
+      {/* P&L + Balance Sheet Quick Action Box */}
       <div className="p-6 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="space-y-1.5">
           <h3 className="text-base font-bold text-slate-900 dark:text-white">
-            Profit & Loss Account + Balance Sheet
+            Financial Statement
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium max-w-xl">
-            Auto-generated traditional T-shape dual-entry bookkeeping statement from gross business receipts and presumptive business ratios entered in the tax JSON.
-          </p>
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
-          <button
-            onClick={() => setTab('pl-bs')}
-            className="px-4 py-2.5 bg-orange-600 text-white hover:bg-orange-500 font-bold text-xs rounded-2xl transition-all cursor-pointer"
-          >
-            Open P&L / Balance Sheet
-          </button>
           <button
             onClick={onDownloadExcel}
             className="px-4 py-2.5 bg-teal-600 text-white hover:bg-teal-500 font-bold text-xs rounded-2xl transition-all cursor-pointer flex items-center gap-1.5"
           >
             <Download className="w-4 h-4" />
             Download Excel
+          </button>
+        </div>
+      </div>
+
+      {/* Computation Report */}
+      <div className="p-6 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[32px] flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div className="space-y-1.5">
+          <h3 className="text-base font-bold text-slate-900 dark:text-white">
+            Computation Report
+          </h3>
+        </div>
+
+        <div className="flex items-center gap-3 shrink-0">
+          <button
+            onClick={onPrintPdf}
+            className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-blue-600 rounded-2xl hover:bg-blue-500 transition-all cursor-pointer"
+          >
+            <Printer className="w-4 h-4" />
+            Download Computation
           </button>
         </div>
       </div>
