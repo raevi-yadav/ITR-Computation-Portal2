@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ITR4Data } from '../types';
 import { formatIndianCurrency, TaxResult } from '../utils/taxCalculator';
-import { Edit2, Check, X } from 'lucide-react';
+import { Edit2, Check, X, CheckCircle2 } from 'lucide-react';
 
 interface IncomeDetailsViewProps {
   data: ITR4Data;
@@ -16,6 +16,26 @@ export default function IncomeDetailsView({
 }: IncomeDetailsViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [backupData, setBackupData] = useState<ITR4Data | null>(null);
+
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  // Handle Toast timeout safely
+  useEffect(() => {
+    if (!showToast) return;
+    const timer = setTimeout(() => {
+      setShowToast(false);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [showToast, toastMessage]);
+
+  const handleRegimeToggle = (newRegime: 'NEW' | 'OLD') => {
+    if (data.regime !== newRegime) {
+      onChange({ ...data, regime: newRegime });
+      setToastMessage(`Tax regime switched to ${newRegime === 'NEW' ? 'New' : 'Old'} Regime. All computations updated.`);
+      setShowToast(true);
+    }
+  };
 
   // Compute totals for badge states and initial auto-expansion triggers
   const hpIncomeTotal = 
@@ -493,6 +513,19 @@ export default function IncomeDetailsView({
                 </>
               )}
 
+              {/* --- SECTION: ROUNDING OFF U/S 288A --- */}
+              {taxResult.roundingAdjustment !== 0 && (
+                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 text-slate-600 dark:text-slate-400 border-l-4 border-slate-300 dark:border-slate-600 font-semibold">
+                  <td className="px-5 py-3 text-sm">Add/Less: Rounding off u/s 288A</td>
+                  <td className="px-5 py-3 text-right text-sm">
+                    {taxResult.roundingAdjustment > 0 
+                      ? `+${formatIndianCurrency(taxResult.roundingAdjustment)}` 
+                      : formatIndianCurrency(taxResult.roundingAdjustment)
+                    }
+                  </td>
+                </tr>
+              )}
+
               {/* --- SECTION: TOTAL TAXABLE INCOME --- */}
               <tr className="bg-indigo-500/10 dark:bg-indigo-500/20 border-l-4 border-indigo-600 dark:border-indigo-500 text-indigo-900 dark:text-indigo-200 font-bold">
                 <td className="px-5 py-5 text-base">Total Income (Rounded u/s 288A)</td>
@@ -504,101 +537,141 @@ export default function IncomeDetailsView({
           </table>
         </div>
 
-        {/* RIGHT COLUMN: GUIDELINES & SLABS */}
-        <div className="space-y-6">
-          
-          {/* REGIME TOGGLE MOVED HERE */}
-          <div className="flex bg-slate-200/60 dark:bg-slate-900/60 p-1.5 rounded-2xl w-full border border-slate-200 dark:border-slate-800 shadow-sm">
-            <button
-              onClick={() => onChange({ ...data, regime: 'NEW' })}
-              className={`flex-1 py-2.5 text-[11px] font-bold rounded-xl transition-all cursor-pointer ${
-                data.regime === 'NEW'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-300/30 dark:hover:bg-slate-800/50'
-              }`}
-            >
-              New Regime (FY 25-26)
-            </button>
-            <button
-              onClick={() => onChange({ ...data, regime: 'OLD' })}
-              className={`flex-1 py-2.5 text-[11px] font-bold rounded-xl transition-all cursor-pointer ${
-                data.regime === 'OLD'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-300/30 dark:hover:bg-slate-800/50'
-              }`}
-            >
-              Old Regime (FY 25-26)
-            </button>
-          </div>
-
-          <div className="bg-slate-900 dark:bg-slate-950 text-slate-100 rounded-3xl p-6 space-y-4 shadow-md border border-slate-800 dark:border-slate-900">
-            <h3 className="text-xs font-black text-indigo-400 dark:text-indigo-300 uppercase tracking-widest">
-              {data.regime === 'NEW' ? 'New Tax Slabs (FY 2025-26)' : 'Old Tax Slabs (FY 2025-26)'}
+        {/* RIGHT COLUMN: REGIME COMMAND CENTER (Now Sticky & Unified) */}
+        <div className="space-y-6 sticky top-6 h-fit">
+          <div className="bg-slate-900 dark:bg-slate-950 text-slate-100 rounded-3xl p-6 space-y-5 shadow-lg border border-slate-800 dark:border-slate-900">
+            
+            <h3 className="text-[10px] font-black text-indigo-400 dark:text-indigo-300 uppercase tracking-widest">
+              Regime Command Center
             </h3>
 
-            <div className="space-y-2.5 text-xs">
-              {data.regime === 'NEW' ? (
-                <>
-                  <div className="flex justify-between border-b border-slate-800 dark:border-slate-900 pb-2">
-                    <span>Up to ₹4,00,000</span>
-                    <span className="font-bold text-indigo-400 dark:text-indigo-300">NIL</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-800 dark:border-slate-900 pb-2">
-                    <span>₹4,00,001 - ₹8,00,000</span>
-                    <span className="font-bold text-indigo-400 dark:text-indigo-300">5%</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-800 dark:border-slate-900 pb-2">
-                    <span>₹8,00,001 - ₹12,00,000</span>
-                    <span className="font-bold text-indigo-400 dark:text-indigo-300">10%</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-800 dark:border-slate-900 pb-2">
-                    <span>₹12,00,001 - ₹16,00,000</span>
-                    <span className="font-bold text-indigo-400 dark:text-indigo-300">15%</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-800 dark:border-slate-900 pb-2">
-                    <span>₹16,00,001 - ₹20,00,000</span>
-                    <span className="font-bold text-indigo-400 dark:text-indigo-300">20%</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-800 dark:border-slate-900 pb-2">
-                    <span>₹20,00,001 - ₹24,00,000</span>
-                    <span className="font-bold text-indigo-400 dark:text-indigo-300">25%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Above ₹24,00,000</span>
-                    <span className="font-bold text-indigo-400 dark:text-indigo-300">30%</span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="flex justify-between border-b border-slate-800 dark:border-slate-900 pb-2">
-                    <span>Up to ₹2,50,000</span>
-                    <span className="font-bold text-indigo-400 dark:text-indigo-300">NIL</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-800 dark:border-slate-900 pb-2">
-                    <span>₹2,50,001 - ₹5,00,000</span>
-                    <span className="font-bold text-indigo-400 dark:text-indigo-300">5%</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-800 dark:border-slate-900 pb-2">
-                    <span>₹5,00,001 - ₹10,00,000</span>
-                    <span className="font-bold text-indigo-400 dark:text-indigo-300">20%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Above ₹10,00,000</span>
-                    <span className="font-bold text-indigo-400 dark:text-indigo-300">30%</span>
-                  </div>
-                </>
-              )}
+            {/* UNIFIED TOGGLE (Adapted for Dark Background) */}
+            <div className="space-y-3">
+              <div className="flex bg-slate-800/80 dark:bg-slate-900/80 p-1.5 rounded-2xl w-full border border-slate-700/50 dark:border-slate-800 shadow-sm">
+                <button
+                  onClick={() => handleRegimeToggle('NEW')}
+                  className={`flex-1 py-2.5 text-[11px] font-bold rounded-xl transition-all cursor-pointer ${
+                    data.regime === 'NEW'
+                      ? 'bg-indigo-600 text-white shadow-sm'
+                      : 'text-slate-400 dark:text-slate-500 hover:text-white dark:hover:text-white hover:bg-slate-700/50 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  New Regime
+                </button>
+                <button
+                  onClick={() => handleRegimeToggle('OLD')}
+                  className={`flex-1 py-2.5 text-[11px] font-bold rounded-xl transition-all cursor-pointer ${
+                    data.regime === 'OLD'
+                      ? 'bg-indigo-600 text-white shadow-sm'
+                      : 'text-slate-400 dark:text-slate-500 hover:text-white dark:hover:text-white hover:bg-slate-700/50 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  Old Regime
+                </button>
+              </div>
+              
+              {/* MICRO-COPY (Inside the Command Center) */}
+              <p className="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 italic font-medium leading-normal px-1">
+                Selection applies globally to all computation tabs and the final print report.
+              </p>
+            </div>
+
+            {/* TAX SLABS (Separated visually within the card) */}
+            <div className="pt-2 border-t border-slate-800 dark:border-slate-800/80">
+              <h4 className="text-xs font-bold text-slate-300 dark:text-slate-400 mb-4 uppercase tracking-widest">
+                {data.regime === 'NEW' ? 'New Tax Slabs (FY 25-26)' : 'Old Tax Slabs (FY 25-26)'}
+              </h4>
+
+              <div className="space-y-2.5 text-xs text-slate-200">
+                {data.regime === 'NEW' ? (
+                  <>
+                    <div className="flex justify-between border-b border-slate-800/60 pb-2">
+                      <span>Up to ₹4,00,000</span>
+                      <span className="font-bold text-indigo-400">NIL</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-800/60 pb-2">
+                      <span>₹4,00,001 - ₹8,00,000</span>
+                      <span className="font-bold text-indigo-400">5%</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-800/60 pb-2">
+                      <span>₹8,00,001 - ₹12,00,000</span>
+                      <span className="font-bold text-indigo-400">10%</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-800/60 pb-2">
+                      <span>₹12,00,001 - ₹16,00,000</span>
+                      <span className="font-bold text-indigo-400">15%</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-800/60 pb-2">
+                      <span>₹16,00,001 - ₹20,00,000</span>
+                      <span className="font-bold text-indigo-400">20%</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-800/60 pb-2">
+                      <span>₹20,00,001 - ₹24,00,000</span>
+                      <span className="font-bold text-indigo-400">25%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Above ₹24,00,000</span>
+                      <span className="font-bold text-indigo-400">30%</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex justify-between border-b border-slate-800/60 pb-2">
+                      <span>Up to ₹2,50,000</span>
+                      <span className="font-bold text-indigo-400">NIL</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-800/60 pb-2">
+                      <span>₹2,50,001 - ₹5,00,000</span>
+                      <span className="font-bold text-indigo-400">5%</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-800/60 pb-2">
+                      <span>₹5,00,001 - ₹10,00,000</span>
+                      <span className="font-bold text-indigo-400">20%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Above ₹10,00,000</span>
+                      <span className="font-bold text-indigo-400">30%</span>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
             
-            <div className="bg-slate-800/80 dark:bg-slate-900/60 p-4 rounded-2xl text-[11px] leading-relaxed text-slate-300 border border-slate-700/50 dark:border-slate-800 mt-4">
+            {/* REBATE INFO */}
+            <div className="bg-slate-800/50 dark:bg-slate-900/60 p-4 rounded-2xl text-[11px] leading-relaxed text-slate-300 border border-slate-700/50 dark:border-slate-800">
               <span className="font-bold text-amber-400 dark:text-amber-300 block mb-1">Rebate u/s 87A:</span>
               {data.regime === 'NEW' 
                 ? 'Under New Regime, full tax rebate is offered if total taxable income is up to ₹12,00,000. Marginal relief is provided for incomes slightly exceeding ₹12 Lakh.'
                 : 'Under Old Regime, full tax rebate is offered if total taxable income is up to ₹5,00,000.'
               }
             </div>
+            
           </div>
         </div>
+      </div>
+
+      {/* Toast Notification */}
+      <div 
+        className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-slate-900 dark:bg-slate-950 text-white px-4.5 py-3.5 rounded-xl shadow-2xl border border-slate-800 dark:border-slate-800/80 transition-all duration-300 transform ${
+          showToast 
+            ? 'opacity-100 translate-y-0 scale-100' 
+            : 'opacity-0 translate-y-4 scale-95 pointer-events-none'
+        }`}
+      >
+        <div className="flex items-center justify-center bg-emerald-500/15 p-1 rounded-full text-emerald-500 shrink-0">
+          <CheckCircle2 className="w-4 h-4" />
+        </div>
+        <div className="flex-1">
+          <p className="text-xs font-bold text-slate-100 leading-normal">
+            {toastMessage}
+          </p>
+        </div>
+        <button 
+          onClick={() => setShowToast(false)}
+          className="text-slate-400 hover:text-white hover:bg-slate-800 p-1 rounded-lg transition-colors cursor-pointer shrink-0"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
       </div>
     </div>
   );

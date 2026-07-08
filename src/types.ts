@@ -17,6 +17,7 @@ export interface PersonalDetails {
   financialYear: string;
   fatherName: string;
   place: string;
+  ackNo?: string;
 }
 
 export interface BankDetails {

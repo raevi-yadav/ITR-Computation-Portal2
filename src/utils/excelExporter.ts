@@ -1,4 +1,5 @@
 import { ITR4Data } from '../types';
+import { calculateTax } from './taxCalculator';
 
 export function exportToExcel(
   data: ITR4Data,
@@ -7,6 +8,7 @@ export function exportToExcel(
 ) {
   const p = data.personal;
   const b = data.business44AD;
+  const taxResult = calculateTax(data);
   
   const getYearEnded = (ay: string) => {
     if (!ay) return '2026';
@@ -305,6 +307,78 @@ export function exportToExcel(
           <td class="number">${totalLiabilities.toLocaleString('en-IN')}</td>
           <td>TOTAL ASSETS</td>
           <td class="number">${totalAssets.toLocaleString('en-IN')}</td>
+        </tr>
+
+        <tr><td colspan="4"></td></tr>
+
+        <tr>
+          <td colspan="4" class="section-header">TAX COMPUTATION SUMMARY u/s 288A (${data.regime} REGIME)</td>
+        </tr>
+        <tr>
+          <td class="bold">Gross Total Income (GTI)</td>
+          <td class="number bold">${taxResult.grossTotalIncome.toLocaleString('en-IN')}</td>
+          <td></td>
+          <td></td>
+        </tr>
+        ${data.regime === 'OLD' ? `
+        <tr>
+          <td>Less: Chapter VI-A Deductions</td>
+          <td class="number">-${taxResult.deductions.toLocaleString('en-IN')}</td>
+          <td></td>
+          <td></td>
+        </tr>
+        ` : ''}
+        ${taxResult.roundingAdjustment !== 0 ? `
+        <tr>
+          <td>Add/Less: Rounding off u/s 288A</td>
+          <td class="number">${taxResult.roundingAdjustment > 0 ? '+' : ''}${taxResult.roundingAdjustment.toLocaleString('en-IN')}</td>
+          <td></td>
+          <td></td>
+        </tr>
+        ` : ''}
+        <tr class="total">
+          <td class="bold">TOTAL INCOME (Rounded u/s 288A)</td>
+          <td class="number bold">${taxResult.totalIncome.toLocaleString('en-IN')}</td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Tax Before Rebate</td>
+          <td class="number">${taxResult.taxBeforeRebate.toLocaleString('en-IN')}</td>
+          <td></td>
+          <td></td>
+        </tr>
+        ${taxResult.rebate87A > 0 ? `
+        <tr>
+          <td>Less: Rebate u/s 87A</td>
+          <td class="number">-${taxResult.rebate87A.toLocaleString('en-IN')}</td>
+          <td></td>
+          <td></td>
+        </tr>
+        ` : ''}
+        <tr>
+          <td>Add: Health & Education Cess @ 4%</td>
+          <td class="number">${taxResult.cess.toLocaleString('en-IN')}</td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr class="total">
+          <td class="bold">Gross Tax Liability</td>
+          <td class="number bold">${taxResult.totalTaxLiability.toLocaleString('en-IN')}</td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Less: Total Prepaid Taxes (TDS/TCS/Advance)</td>
+          <td class="number">-${taxResult.prepaidTax.toLocaleString('en-IN')}</td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr class="total">
+          <td class="bold">${taxResult.payableAmount > 0 ? 'NET TAX PAYABLE u/s 288B' : 'NET REFUND DUE'}</td>
+          <td class="number bold" style="color: ${taxResult.payableAmount > 0 ? '#ea580c' : '#16a34a'};">${(taxResult.payableAmount > 0 ? taxResult.payableAmount : taxResult.refundAmount).toLocaleString('en-IN')}</td>
+          <td></td>
+          <td></td>
         </tr>
       </table>
     </body>

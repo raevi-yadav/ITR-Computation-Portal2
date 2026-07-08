@@ -118,6 +118,7 @@ export interface TaxResult {
   otherSourcesIncome: number;
   grossTotalIncome: number;
   deductions: number;
+  roundingAdjustment: number;
   totalIncome: number; // Rounded u/s 288A
   taxBeforeRebate: number;
   rebate87A: number;
@@ -199,7 +200,7 @@ export function calculateTax(data: ITR4Data): TaxResult {
   const grossTotalIncome = netSalary + netHPIncome + businessIncome + professionIncome + otherSourcesIncome;
 
   // Deductions (Chapter VI-A)
-  let deductions = 0;
+  let sumOfAllDeductions = 0;
   if (data.regime === 'OLD') {
     // Under Old Regime, 80C (up to 1.5L), 80D, 80TTA (interest savings up to 10k)
     const d80C = Math.min(150000, data.deductions.sec80C);
@@ -207,15 +208,19 @@ export function calculateTax(data: ITR4Data): TaxResult {
     const d80G = data.deductions.sec80G;
     // 80TTA: Savings interest up to 10k
     const max80TTA = Math.min(10000, data.otherSources.interestSavings, data.deductions.sec80TTA || 10000);
-    deductions = d80C + d80D + d80G + max80TTA;
+    sumOfAllDeductions = d80C + d80D + d80G + max80TTA;
   } else {
     // Under New Regime, standard deductions from salary are allowed (already deducted), but Chapter VI-A deductions are generally NOT allowed (except 80CCD(2), which is not typical here).
-    deductions = 0;
+    sumOfAllDeductions = 0;
   }
 
+  const finalAllowedDeductions = Math.min(sumOfAllDeductions, grossTotalIncome);
+
   // Net Taxable Income
-  const totalIncomeRaw = Math.max(0, grossTotalIncome - deductions);
-  const totalIncome = roundToNearestTen(totalIncomeRaw);
+  const unroundedTotalIncome = grossTotalIncome - finalAllowedDeductions;
+  const roundedTotalIncome = Math.round(unroundedTotalIncome / 10) * 10;
+  const roundingAdjustment = roundedTotalIncome - unroundedTotalIncome;
+  const totalIncome = Math.max(0, roundedTotalIncome);
 
   // Tax Calculation Slabs
   let taxBeforeRebate = 0;
@@ -326,8 +331,9 @@ export function calculateTax(data: ITR4Data): TaxResult {
     professionIncome,
     otherSourcesIncome,
     grossTotalIncome,
-    deductions,
+    deductions: finalAllowedDeductions,
     totalIncome,
+    roundingAdjustment,
     taxBeforeRebate,
     rebate87A,
     taxAfterRebate,

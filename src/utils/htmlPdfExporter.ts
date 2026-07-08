@@ -297,7 +297,18 @@ ${refundOrPayable}`;
           <td class="text-right">GROSS TOTAL INCOME</td>
           <td class="amt-col">${formatIndianCurrency(taxResult.grossTotalIncome)}</td>
         </tr>
-        
+        ${data.regime === 'OLD' ? `
+        <tr>
+          <td class="text-right">Less: Chapter VI-A Deductions</td>
+          <td class="amt-col">-${formatIndianCurrency(taxResult.deductions)}</td>
+        </tr>
+        ` : ''}
+        ${taxResult.roundingAdjustment !== 0 ? `
+        <tr>
+          <td class="text-right">Add/Less: Rounding off u/s 288A</td>
+          <td class="amt-col">${taxResult.roundingAdjustment > 0 ? `+${formatIndianCurrency(taxResult.roundingAdjustment)}` : formatIndianCurrency(taxResult.roundingAdjustment)}</td>
+        </tr>
+        ` : ''}
         <tr class="total-row">
           <td class="text-right">TOTAL TAXABLE INCOME (Rounded off u/s 288A)</td>
           <td class="amt-col">${formatIndianCurrency(taxResult.totalIncome)}</td>

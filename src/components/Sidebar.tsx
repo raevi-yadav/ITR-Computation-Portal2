@@ -35,7 +35,7 @@ export default function Sidebar({
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'personal', label: 'Personal & Bank', icon: User },
+    { id: 'personal', label: 'Assessee Profile', icon: User },
     { id: 'income', label: 'Income Summary', icon: IndianRupee },
     { id: 'presumptive', label: 'Presumptive Taxation', icon: Percent },
     { id: 'pl-bs', label: 'Financial Statements', icon: FileSpreadsheet },
